@@ -118,7 +118,7 @@ def main():
         #NOTE: I don't know how write specific section of the excel file. If you know, please add it here.
         
         # Some pre-processing. Please edit the code below according to your own tables
-        df = df.loc[:,'studid':'credit'] 
+        # df = df.loc[:,'studid':'credit'] 
 
         # Step 2: the dataframe df is written into an SQL table 'X' - X to be replaced by the table you want to fill, I guess
         df.to_sql('X', con=psql_conn, if_exists='append', index=False)
