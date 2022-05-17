@@ -8,7 +8,7 @@ try:
    # 1. NEVER store credential like this in practice. This is only for testing purpose
    # 2. Replace your "database" name, "user" and "password" that we provide to test the connection to your database 
    connection = psycopg2.connect(
-   database="grp10_vaccinedis",  # TO BE REPLACED
+   database='grp10_vaccinedist',  # TO BE REPLACED
    user='grp10',    # TO BE REPLACED
    password='VeKQ^hLf', # TO BE REPLACED
    host='dbcourse2022.cs.aalto.fi',
