@@ -18,8 +18,10 @@ CREATE TABLE batch (
     batchID TEXT PRIMARY KEY, 
     numberOfVacc INT CONSTRAINT positive_num_of_vacc CHECK (numberOfVacc > 0),
     vaccType TEXT NOT NULL,
+    manufacturer TEXT NOT NULL,
     prodDate DATE NOT NULL,
     expDate DATE NOT NULL,
+    location TEXT NOT NULL
     FOREIGN KEY (vaccType) REFERENCES vaccineType (vaccID)
 );
 
