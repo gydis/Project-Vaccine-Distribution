@@ -1,5 +1,8 @@
+-- For some reason, the case of tables and attributes' names is ignored. Idk what causes it...
+
 CREATE TABLE vaccineType (
     vaccID TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
     doses INT NOT NULL CONSTRAINT positive_doses CHECK (doses > 0),
     tempMin INT NOT NULL,
     tempMax INT NOT NULL

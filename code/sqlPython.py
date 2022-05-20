@@ -67,9 +67,9 @@ def main():
     # In postgres=# shell: CREATE ROLE [role_name] WITH CREATEDB LOGIN PASSWORD '[pssword]'; 
     # https://www.postgresql.org/docs/current/sql-createrole.html
 
-    database="grp10_vaccinedist"    # TO BE REPLACED 
-    user='grp10'        # TO BE REPLACED
-    password='VeKQ^hLf'    # TO BE REPLACED
+    database="grp10_vaccinedist"
+    user='grp10'
+    password='VeKQ^hLf'
     host='dbcourse2022.cs.aalto.fi'
     # use connect function to establish the connection
     try:
@@ -80,7 +80,7 @@ def main():
                                         password=password,   
                                         host=host
                                     )
-        # connection.autocommit = True
+        #connection.autocommit = True 
         # Create a cursor to perform database operations
         cursor = connection.cursor()
         # Print PostgreSQL details
@@ -92,43 +92,38 @@ def main():
         record = cursor.fetchone()
         print("You are connected to - ", record, "\n")
 
-        
-        # THE project will use SQLAlchemy to create connection, execute queries and fill table
-        # Create and fill table from sql file using run_sql_from_file function (Not needed if using pandas df)
+        # Population of DB with tables:
 
         # Step 1: Connect to db using SQLAlchemy create_engine
         DIALECT = 'postgresql+psycopg2://'
         db_uri = "%s:%s@%s/%s" % (user, password, host, database)
-        print(DIALECT+db_uri) # postgresql+psycopg2://test_admin:pssword@localhost/tutorial4
+        print(DIALECT+db_uri)
         engine = create_engine(DIALECT + db_uri)
         sql_file1  = open(DATADIR + '/code/sqlCreatingDatabase.sql')
         psql_conn  = engine.connect()
-        
-        #Read SQL files for CREATE TABLE and INSERT queries to student table 
+
+        #Read SQL files for CREATE TABLE 
         run_sql_from_file (sql_file1, psql_conn)
 
-        
-        # Create and fill table from excel file using pandas df
-        # Step 2 (Option 2): CREATE TABLE engine connection & fill in tables with Pandas Dataframe to_sql
-  
-        # Step 1: read excel file
-        # df = pd.read_excel('vaccine-distribution-data.xlsx')
+        # Read excel file and insert into DB.
 
-        #NOTE: I don't know how write specific section of the excel file. If you know, please add it here.
-        
-        # Some pre-processing. Please edit the code below according to your own tables
-        # df = df.loc[:,'studid':'credit'] 
+        # NOTE: For some reason, the code for executing queries from an sql file ignores the case, so all tables and attributes in the DB are lower-cased. So, until this is fixed, all columns in dataframes need to be lowercased.
 
-        # Step 2: the dataframe df is written into an SQL table 'X' - X to be replaced by the table you want to fill, I guess
-        # df.to_sql('X', con=psql_conn, if_exists='append', index=False)
+        # Example code for VaccineType data:
+        # sheet_name option chooses which excel sheet is read. You can use an index (from 0), its name, or a list of indices/names. None option reads all sheets, producing a dictionary (Name of sheet -> its dataframe).
+        df = pd.read_excel(DATADIR + '/data/vaccine-distribution-data.xlsx', sheet_name='VaccineType')
+        df = df.rename(columns={'ID' : 'vaccID'})
+        df = df.rename(str.lower, axis='columns') # Make all column names lower-case
 
-        # Modify the tests below if you want to see the results of your operations
-        # However, I guess you can also use SQLShell which is easier - not sure though
+        # The dataframe df is written into an SQL table 'vaccinetype'
+        df.to_sql('vaccinetype', con=psql_conn, if_exists='append', index=False)
+
+        # Modify the tests below if you want to see the results of your operations (or use psql to see the changes)
 
         # test
         # result = psql_conn.execute(""" SELECT * FROM student LIMIT 10 """ )
         # print(f'After create and insert:\n{result.fetchall()}')
-        
+
         # sql_ =  """
         #        SELECT * FROM student LIMIT 10
         #        """
@@ -137,7 +132,6 @@ def main():
         # print(test_df)
         # Drop table
         # psql_conn.execute("DROP TABLE student")
-        
 
     except (Exception, Error) as error:
         print("Error while connecting to PostgreSQL", error)
