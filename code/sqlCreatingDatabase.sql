@@ -38,3 +38,10 @@ CREATE TABLE transportLog (
     arrHos TEXT REFERENCES hospital,
     PRIMARY KEY (batchID, depHos, arrHos, depDate, arrDate)
 );
+
+CREATE TABLE Manufacturer (
+    ID TEXT PRIMARY KEY,
+    origin TEXT NOT NULL,
+    contactNumber TEXT NOT NULL,
+    vaccineID TEXT NOT NULL
+);
