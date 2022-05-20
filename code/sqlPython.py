@@ -111,12 +111,37 @@ def main():
 
         # Example code for VaccineType data:
         # sheet_name option chooses which excel sheet is read. You can use an index (from 0), its name, or a list of indices/names. None option reads all sheets, producing a dictionary (Name of sheet -> its dataframe).
-        df = pd.read_excel(DATADIR + '/data/vaccine-distribution-data.xlsx', sheet_name='VaccineType')
-        df = df.rename(columns={'ID' : 'vaccID'})
-        df = df.rename(str.lower, axis='columns') # Make all column names lower-case
+        dfVaccType = pd.read_excel(DATADIR + '/data/vaccine-distribution-data.xlsx', sheet_name='VaccineType')
+        dfVaccType = dfVaccType.rename(columns={'ID' : 'vaccID'})
+        dfVaccType = dfVaccType.rename(str.lower, axis='columns') # Make all column names lower-case
 
         # The dataframe df is written into an SQL table 'vaccinetype'
-        df.to_sql('vaccinetype', con=psql_conn, if_exists='append', index=False)
+        dfVaccType.to_sql('vaccinetype', con=psql_conn, if_exists='append', index=False)
+
+
+        # Populating Manufacturer table
+        dfManuf = pd.read_excel(DATADIR + '/data/vaccine-distribution-data.xlsx', sheet_name='Manufacturer')
+        dfManuf = dfManuf.rename(columns={'country' : 'origin'})
+        dfManuf = dfManuf.rename(columns={'phone' : 'contactNumber'})
+        dfManuf = dfManuf.rename(columns={'vaccine' : 'vaccineID'})
+        dfManuf = dfManuf.rename(str.lower, axis='columns') # Make all column names lower-case
+
+        # The dataframe df is written into an SQL table 'vaccinetype'
+        dfManuf.to_sql('manufacturer', con=psql_conn, if_exists='append', index=False)
+
+        # Populating Batch table
+        dfBatch = pd.read_excel(DATADIR + '/data/vaccine-distribution-data.xlsx', sheet_name='VaccineBatch')
+        dfBatch = dfBatch.rename(columns={'amount' : 'numberOfVacc'})        
+        dfBatch = dfBatch.rename(columns={'amount' : 'vaccType'})        
+        dfBatch = dfBatch.rename(columns={'manufDate' : 'prodDate'})
+        dfBatch = dfBatch.rename(columns={'expiration' : 'expDate'})
+        dfBatch = dfBatch.rename(str.lower, axis='columns') # Make all column names lower-case
+
+        # The dataframe df is written into an SQL table 'vaccinetype'
+        dfBatch.to_sql('batch', con=psql_conn, if_exists='append', index=False)
+
+
+
 
         # Modify the tests below if you want to see the results of your operations (or use psql to see the changes)
 
