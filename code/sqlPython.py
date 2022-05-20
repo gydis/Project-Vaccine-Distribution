@@ -98,13 +98,12 @@ def main():
 
         # Step 1: Connect to db using SQLAlchemy create_engine
         DIALECT = 'postgresql+psycopg2://'
-        database ='tutorial4'
         db_uri = "%s:%s@%s/%s" % (user, password, host, database)
         print(DIALECT+db_uri) # postgresql+psycopg2://test_admin:pssword@localhost/tutorial4
         engine = create_engine(DIALECT + db_uri)
         sql_file1  = open(DATADIR + '/code/sqlCreatingDatabase.sql')
         psql_conn  = engine.connect()
-
+        
         #Read SQL files for CREATE TABLE and INSERT queries to student table 
         run_sql_from_file (sql_file1, psql_conn)
 
@@ -113,7 +112,7 @@ def main():
         # Step 2 (Option 2): CREATE TABLE engine connection & fill in tables with Pandas Dataframe to_sql
   
         # Step 1: read excel file
-        df = pd.read_excel('vaccine-distribution-data.xlsx')
+        # df = pd.read_excel('vaccine-distribution-data.xlsx')
 
         #NOTE: I don't know how write specific section of the excel file. If you know, please add it here.
         
@@ -121,7 +120,7 @@ def main():
         # df = df.loc[:,'studid':'credit'] 
 
         # Step 2: the dataframe df is written into an SQL table 'X' - X to be replaced by the table you want to fill, I guess
-        df.to_sql('X', con=psql_conn, if_exists='append', index=False)
+        # df.to_sql('X', con=psql_conn, if_exists='append', index=False)
 
         # Modify the tests below if you want to see the results of your operations
         # However, I guess you can also use SQLShell which is easier - not sure though
