@@ -32,11 +32,11 @@ CREATE TABLE storedAt (
 );
 
 CREATE TABLE transportLog (
-    depDate TIMESTAMP,
-    arrDate TIMESTAMP,
     batchID TEXT REFERENCES batch,
     depHos TEXT REFERENCES hospital,
     arrHos TEXT REFERENCES hospital,
+    depDate TIMESTAMP,
+    arrDate TIMESTAMP,
     PRIMARY KEY (batchID, depHos, arrHos, depDate, arrDate)
 );
 

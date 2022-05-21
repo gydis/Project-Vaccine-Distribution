@@ -159,6 +159,12 @@ def main():
         dfStored = dfStored.rename(str.lower, axis='columns')
 
         dfStored.to_sql('storedat', con=psql_conn, if_exists='append', index=False)
+        # Populating transportLog table
+        dfLog = pd.read_excel(excel_file, sheet_name='Transportation log')
+        dfLog = dfLog.rename(columns={'departure ' : 'depHos', 'arrival' : 'arrHos', 'dateArr' : 'arrDate', 'dateDep' : 'depDate'})
+        dfLog = dfLog.rename(str.lower, axis='columns')
+
+        dfLog.to_sql('transportlog', con=psql_conn, if_exists='append', index=False)
 
 
         # Modify the tests below if you want to see the results of your operations (or use psql to see the changes)
