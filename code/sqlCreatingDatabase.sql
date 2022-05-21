@@ -21,7 +21,6 @@ CREATE TABLE batch (
     manufacturer TEXT NOT NULL,
     prodDate DATE NOT NULL,
     expDate DATE NOT NULL,
-    location TEXT NOT NULL
     FOREIGN KEY (vaccType) REFERENCES vaccineType (vaccID)
 );
 
@@ -47,3 +46,7 @@ CREATE TABLE Manufacturer (
     contactNumber TEXT NOT NULL,
     vaccineID TEXT NOT NULL
 );
+
+-- Command to drop all the relations (I'll just store it here for convenience.)
+-- DROP TABLE batch,hospital,manufacturer,storedat,transportlog,vaccinetype;
+

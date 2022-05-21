@@ -109,9 +109,12 @@ def main():
 
         # NOTE: For some reason, the code for executing queries from an sql file ignores the case, so all tables and attributes in the DB are lower-cased. So, until this is fixed, all columns in dataframes need to be lowercased.
 
+        # Excel file location
+        excel_file = DATADIR + '/data/vaccine-distribution-data.xlsx'
+
         # Example code for VaccineType data:
         # sheet_name option chooses which excel sheet is read. You can use an index (from 0), its name, or a list of indices/names. None option reads all sheets, producing a dictionary (Name of sheet -> its dataframe).
-        dfVaccType = pd.read_excel(DATADIR + '/data/vaccine-distribution-data.xlsx', sheet_name='VaccineType')
+        dfVaccType = pd.read_excel(excel_file, sheet_name='VaccineType')
         dfVaccType = dfVaccType.rename(columns={'ID' : 'vaccID'})
         dfVaccType = dfVaccType.rename(str.lower, axis='columns') # Make all column names lower-case
 
@@ -120,7 +123,7 @@ def main():
 
 
         # Populating Manufacturer table
-        dfManuf = pd.read_excel(DATADIR + '/data/vaccine-distribution-data.xlsx', sheet_name='Manufacturer')
+        dfManuf = pd.read_excel(excel_file, sheet_name='Manufacturer')
         dfManuf = dfManuf.rename(columns={'country' : 'origin'})
         dfManuf = dfManuf.rename(columns={'phone' : 'contactNumber'})
         dfManuf = dfManuf.rename(columns={'vaccine' : 'vaccineID'})
@@ -130,17 +133,32 @@ def main():
         dfManuf.to_sql('manufacturer', con=psql_conn, if_exists='append', index=False)
 
         # Populating Batch table
-        dfBatch = pd.read_excel(DATADIR + '/data/vaccine-distribution-data.xlsx', sheet_name='VaccineBatch')
+        dfBatch = pd.read_excel(excel_file, sheet_name='VaccineBatch')
+
+        # Save IDs and locations for storedAt
+        dfStored = dfBatch[['batchID', 'location']].copy()
+
         dfBatch = dfBatch.rename(columns={'amount' : 'numberOfVacc'})        
-        dfBatch = dfBatch.rename(columns={'amount' : 'vaccType'})        
+        dfBatch = dfBatch.rename(columns={'type' : 'vaccType'})        
         dfBatch = dfBatch.rename(columns={'manufDate' : 'prodDate'})
         dfBatch = dfBatch.rename(columns={'expiration' : 'expDate'})
+        dfBatch = dfBatch.drop(columns='location')
         dfBatch = dfBatch.rename(str.lower, axis='columns') # Make all column names lower-case
 
         # The dataframe df is written into an SQL table 'vaccinetype'
         dfBatch.to_sql('batch', con=psql_conn, if_exists='append', index=False)
 
+        # Populating hospital
+        dfHospital = pd.read_excel(excel_file, sheet_name='VaccinationStations')
+        dfHospital = dfHospital.rename(str.lower, axis='columns')
 
+        dfHospital.to_sql('hospital', con=psql_conn, if_exists='append', index=False)
+
+        # Populating storedAt table
+        dfStored = dfStored.rename(columns={'location' : 'hosName'})
+        dfStored = dfStored.rename(str.lower, axis='columns')
+
+        dfStored.to_sql('storedat', con=psql_conn, if_exists='append', index=False)
 
 
         # Modify the tests below if you want to see the results of your operations (or use psql to see the changes)
