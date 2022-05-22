@@ -50,11 +50,11 @@ CREATE TABLE Manufacturer (
 CREATE TABLE staff (
     ssN TEXT PRIMARY KEY,
     name TEXT NOT NULL,
-    birthday TIMESTAMP NOT NULL, 
+    birthday DATE NOT NULL, 
     phone TEXT NOT NULL,
     role TEXT NOT NULL,
     vaccStatus BOOLEAN NOT NULL, 
-    hospital TEXT REFERENCES hospital (name) NOT NULL 
+    hospital TEXT REFERENCES hospital(name) 
 );
 
 CREATE TABLE vaccinationshift (
