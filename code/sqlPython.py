@@ -184,8 +184,17 @@ def main():
         dfVaccShift = dfVaccShift.rename(str.lower, axis='columns')
         dfVaccShift.to_sql('staff', con=psql_conn,
                            if_exists='append', index=False)
+        # Populating Vaccination table
+        vaccine_df = pd.read_excel(excel_file, sheet_name='Vaccinations')
+        vaccine_df['date'] = pd.to_datetime(vaccine_df['date'])
+        vaccine_df.columns = vaccine_df.columns.str.strip()
+        vaccine_df.to_sql('vaccination_event', con=psql_conn, if_exists='append', index=False)
 
-
+        # Populating Vaccine Patients
+        vacc_patient_df = pd.read_excel(excel_file, sheet_name='VaccinePatients')
+        vacc_patient_df['date'] = pd.to_datetime(vacc_patient_df['date'])
+        vacc_patient_df.columns = vacc_patient_df.columns.str.strip()
+        vacc_patient_df.to_sql('vaccine_patient', con=psql_conn, if_exists='append', index=False)
         # Modify the tests below if you want to see the results of your operations (or use psql to see the changes)
 
         # test

@@ -52,7 +52,7 @@ CREATE TABLE Staff (
     name TEXT,
     birthday DATE, -- TEXT?
     vaccStatus INT CHECK(vaccinationStatus == 1 OR vaccinationStatus == 0),
-    -- vaccinationStatus BOOLEAN, 
+    -- vaccinationStatus BOOLEAN,
     role TEXT
 );
 
@@ -62,6 +62,22 @@ CREATE TABLE VaccinationShift (
     PRIMARY KEY (weekday, hospital)
 );
 
+CREATE TABLE vaccination_event (
+    date        date,
+    location    TEXT NOT NULL,
+    "batchID"   TEXT NOT NULL,
+    PRIMARY KEY(date, location),
+    FOREIGN KEY(location) REFERENCES hospital(name),
+    FOREIGN KEY("batchID") REFERENCES batch(batchid)
+);
+
+CREATE TABLE vaccine_patient (
+    "patientSsNo" TEXT,
+    date        date NOT NULL,
+    location    TEXT NOT NULL,
+    PRIMARY KEY("patientSsNo", date)
+);
+
 -- Command to drop all the relations (I'll just store it here for convenience.)
--- DROP TABLE batch,hospital,manufacturer,storedat,transportlog,vaccinetype;
+-- DROP TABLE batch,hospital,manufacturer,storedat,transportlog,vaccinetype,vaccination_event,vaccine_patient;
 
