@@ -129,24 +129,7 @@ def main():
         dfManuf = dfManuf.rename(columns={'vaccine' : 'vaccineID'})
         dfManuf = dfManuf.rename(str.lower, axis='columns') # Make all column names lower-case
 
-        # The dataframe df is written into an SQL table 'vaccinetype'
         dfManuf.to_sql('manufacturer', con=psql_conn, if_exists='append', index=False)
-
-        # Populating Batch table
-        dfBatch = pd.read_excel(excel_file, sheet_name='VaccineBatch')
-
-        # Save IDs and locations for storedAt
-        dfStored = dfBatch[['batchID', 'location']].copy()
-
-        dfBatch = dfBatch.rename(columns={'amount' : 'numberOfVacc'})        
-        dfBatch = dfBatch.rename(columns={'type' : 'vaccType'})        
-        dfBatch = dfBatch.rename(columns={'manufDate' : 'prodDate'})
-        dfBatch = dfBatch.rename(columns={'expiration' : 'expDate'})
-        dfBatch = dfBatch.drop(columns='location')
-        dfBatch = dfBatch.rename(str.lower, axis='columns') # Make all column names lower-case
-
-        # The dataframe df is written into an SQL table 'vaccinetype'
-        dfBatch.to_sql('batch', con=psql_conn, if_exists='append', index=False)
 
         # Populating hospital
         dfHospital = pd.read_excel(excel_file, sheet_name='VaccinationStations')
@@ -154,11 +137,17 @@ def main():
 
         dfHospital.to_sql('hospital', con=psql_conn, if_exists='append', index=False)
 
-        # Populating storedAt table
-        dfStored = dfStored.rename(columns={'location' : 'hosName'})
-        dfStored = dfStored.rename(str.lower, axis='columns')
+        # Populating Batch table
+        dfBatch = pd.read_excel(excel_file, sheet_name='VaccineBatch')
 
-        dfStored.to_sql('storedat', con=psql_conn, if_exists='append', index=False)
+        dfBatch = dfBatch.rename(columns={'amount' : 'numberOfVacc'})        
+        dfBatch = dfBatch.rename(columns={'type' : 'vaccType'})        
+        dfBatch = dfBatch.rename(columns={'manufDate' : 'prodDate'})
+        dfBatch = dfBatch.rename(columns={'expiration' : 'expDate'})
+        dfBatch = dfBatch.rename(str.lower, axis='columns') # Make all column names lower-case
+
+        dfBatch.to_sql('batch', con=psql_conn, if_exists='append', index=False)
+
         # Populating transportLog table
         dfLog = pd.read_excel(excel_file, sheet_name='Transportation log')
         dfLog = dfLog.rename(columns={'departure ' : 'depHos', 'arrival' : 'arrHos', 'dateArr' : 'arrDate', 'dateDep' : 'depDate'})

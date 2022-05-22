@@ -21,14 +21,8 @@ CREATE TABLE batch (
     manufacturer TEXT NOT NULL,
     prodDate DATE NOT NULL,
     expDate DATE NOT NULL,
+    location TEXT REFERENCES hospital (name),
     FOREIGN KEY (vaccType) REFERENCES vaccineType (vaccID)
-);
-
-CREATE TABLE storedAt (
-    batchID TEXT PRIMARY KEY,
-    hosName TEXT,
-    FOREIGN KEY (batchID) REFERENCES batch (batchID),
-    FOREIGN KEY (hosName) REFERENCES hospital (name)
 );
 
 CREATE TABLE transportLog (
@@ -81,5 +75,5 @@ CREATE TABLE vaccine_patient (
 );
 
 -- Command to drop all the relations (I'll just store it here for convenience.)
--- DROP TABLE batch,hospital,manufacturer,storedat,transportlog,vaccinetype,vaccination_event,vaccine_patient;
+-- DROP TABLE batch,hospital,manufacturer,staff,vaccinationshift,transportlog,vaccinetype,vaccination_event,vaccine_patient;
 
