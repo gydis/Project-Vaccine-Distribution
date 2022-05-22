@@ -166,6 +166,25 @@ def main():
 
         dfLog.to_sql('transportlog', con=psql_conn, if_exists='append', index=False)
 
+        # Populating Staff table
+        dfStaff = pd.read_excel(
+            DATADIR + '/data/vaccine-distribution-data.xlsx', sheet_name='StaffMembers')
+        dfStaff = dfStaff.rename(
+            columns={'social security number': 'ssN',
+                     'date of birth': 'birthday', 'vaccination status': 'vaccStatus'}
+        )
+        dfStaff = dfStaff.rename(str.lower, axis='columns')
+
+        dfStaff.to_sql('staff', con=psql_conn, if_exists='append', index=False)
+
+        # Populating Shift table
+        dfVaccShift = pd.read_excel(
+            DATADIR + '/data/vaccine-distribution-data.xlsx', sheet_name='Shifts')
+        dfVaccShift = dfVaccShift.rename(columns={'station': 'hospital'})
+        dfVaccShift = dfVaccShift.rename(str.lower, axis='columns')
+        dfVaccShift.to_sql('staff', con=psql_conn,
+                           if_exists='append', index=False)
+
 
         # Modify the tests below if you want to see the results of your operations (or use psql to see the changes)
 
