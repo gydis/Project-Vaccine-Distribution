@@ -182,7 +182,7 @@ def main():
             DATADIR + '/data/vaccine-distribution-data.xlsx', sheet_name='Shifts')
         dfVaccShift = dfVaccShift.rename(columns={'station': 'hospital'})
         dfVaccShift = dfVaccShift.rename(str.lower, axis='columns')
-        dfVaccShift.to_sql('staff', con=psql_conn,
+        dfVaccShift.to_sql('vaccinationshift', con=psql_conn,
                            if_exists='append', index=False)
         # Populating Vaccination table
         vaccine_df = pd.read_excel(excel_file, sheet_name='Vaccinations')
