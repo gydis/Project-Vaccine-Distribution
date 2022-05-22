@@ -47,6 +47,21 @@ CREATE TABLE Manufacturer (
     vaccineID TEXT NOT NULL
 );
 
+CREATE TABLE Staff (
+    ssN TEXT PRIMARY KEY,
+    name TEXT,
+    birthday DATE, -- TEXT?
+    vaccStatus INT CHECK(vaccinationStatus == 1 OR vaccinationStatus == 0),
+    -- vaccinationStatus BOOLEAN, 
+    role TEXT
+);
+
+CREATE TABLE VaccinationShift (
+    weekday TEXT,
+    FOREIGN KEY hospital REFERENCES hospital (name),
+    PRIMARY KEY (weekday, hospital)
+);
+
 -- Command to drop all the relations (I'll just store it here for convenience.)
 -- DROP TABLE batch,hospital,manufacturer,storedat,transportlog,vaccinetype;
 
