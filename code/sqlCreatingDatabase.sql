@@ -47,19 +47,21 @@ CREATE TABLE Manufacturer (
     vaccineID TEXT NOT NULL
 );
 
-CREATE TABLE Staff (
+CREATE TABLE staff (
     ssN TEXT PRIMARY KEY,
-    name TEXT,
-    birthday DATE, -- TEXT?
-    vaccStatus INT CHECK(vaccinationStatus == 1 OR vaccinationStatus == 0),
-    -- vaccinationStatus BOOLEAN,
-    role TEXT
+    name TEXT NOT NULL,
+    birthday TIMESTAMP NOT NULL, 
+    phone TEXT NOT NULL,
+    role TEXT NOT NULL,
+    vaccStatus BOOLEAN NOT NULL, 
+    hospital TEXT REFERENCES hospital (name) NOT NULL 
 );
 
-CREATE TABLE VaccinationShift (
-    weekday TEXT,
-    FOREIGN KEY hospital REFERENCES hospital (name),
-    PRIMARY KEY (weekday, hospital)
+CREATE TABLE vaccinationshift (
+    hospital TEXT REFERENCES hospital(name) NOT NULL,
+    weekday TEXT NOT NULL,
+    worker TEXT REFERENCES staff(ssN) NOT NULL,
+    PRIMARY KEY (worker, weekday) 
 );
 
 CREATE TABLE vaccination_event (
