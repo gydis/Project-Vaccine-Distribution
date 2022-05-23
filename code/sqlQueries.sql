@@ -1,13 +1,12 @@
 -- Query 1
-
-SELECT staff.ssNo, staff.name, staff.phone, staff.role, staff.vaccinationStatus, hospital.name
-FROM staff, vaccination_event, shifts
-WHERE vaccination_event.date = '2021-05-10' AND vaccination_shift.address = vaccination_event.location AND vaccination_shift.day = 'Monday' AND vaccination_shift.staff = staff.id;
+SELECT staff.ssn, staff.name, staff.phone, staff.role, staff.vaccstatus, vaccinationshift.hospital
+FROM staff, vaccination_event, vaccinationshift
+WHERE vaccination_event.date = '2021-05-10' AND vaccinationshift.hospital = vaccination_event.location AND vaccinationshift.weekday = 'Monday' AND vaccinationshift.worker = staff.ssn;
 
 -- Query 2
-SELECT staff.ssNo, staff.name, staff.birthday, staff.phone, staff.role, staff.vaccinationStatus
-FROM staff, shifts
-WHERE staff.id = shifts.staff AND staff.id NOT IN (SELECT staff.id FROM staff, shifts WHERE shifts.day = 'Wednesday' AND shifts.staff = staff.id); 
+SELECT staff.ssn, staff.name, staff.birthday, staff.phone, staff.role, staff.vaccstatus
+FROM staff, vaccinationshift
+WHERE staff.ssn = vaccinationshift.worker AND staff.role = 'doctor' AND  staff.ssn IN (SELECT staff.ssn FROM staff, vaccinationshift WHERE vaccinationshift.weekday = 'Wednesday' AND vaccinationshift.worker = staff.ssn); 
 
 -- Query 6
 SELECT hospital.name AS hospital_name, SUM(batch.numberofvacc) AS total_vaccines, 
