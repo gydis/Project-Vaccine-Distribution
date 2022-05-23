@@ -3,10 +3,15 @@ SELECT staff.ssn, staff.name, staff.phone, staff.role, staff.vacc_status, vaccin
 FROM staff, vaccination_event, vaccination_shift
 WHERE vaccination_event.date = '2021-05-10' AND vaccination_shift.hospital = vaccination_event.hospital AND vaccination_shift.weekday = 'Monday' AND vaccination_shift.worker = staff.ssn;
 
--- Query 2 (Outputs identical rows without DISTINCT on staff.ssn)
-SELECT DISTINCT staff.ssn, staff.name, staff.birthday, staff.phone, staff.role, staff.vacc_status
-FROM staff, vaccination_shift
-WHERE staff.ssn = vaccination_shift.worker AND staff.role = 'doctor' AND  staff.ssn IN (SELECT staff.ssn FROM staff, vaccination_shift WHERE vaccination_shift.weekday = 'Wednesday' AND vaccination_shift.worker = staff.ssn); 
+-- Query 2
+SELECT staff.ssn, staff.name, staff.phone, staff.role, staff.vacc_status, staff.hospital
+FROM hospital
+LEFT JOIN vaccination_shift as shift
+ON shift.hospital = hospital.name AND shift.weekday = 'Wednesday'
+RIGHT JOIN staff
+ON staff.ssn = shift.worker AND staff.role = 'doctor'
+WHERE hospital.address LIKE '%HELSINKI'
+ORDER BY ssn ASC;
 
 -- Query 3
 --Query 3 part one
