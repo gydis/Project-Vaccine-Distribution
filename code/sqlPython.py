@@ -76,15 +76,13 @@ def main():
                                         password=password,   
                                         host=host
                                     )
-        #connection.autocommit = True 
+
         # Create a cursor to perform database operations
         cursor = connection.cursor()
-        # Print PostgreSQL details
+
         print("PostgreSQL server information")
         print(connection.get_dsn_parameters(), "\n")
-        # Executing a SQL query
         cursor.execute("SELECT version();")
-        # Fetch result
         record = cursor.fetchone()
         print("You are connected to - ", record, "\n")
 
@@ -94,137 +92,142 @@ def main():
         DIALECT = 'postgresql+psycopg2://'
         db_uri = "%s:%s@%s/%s" % (user, password, host, database)
         print(DIALECT+db_uri)
-        engine = create_engine(DIALECT + db_uri)
-        sql_file1  = open(DATADIR + '/code/sqlCreatingDatabase.sql')
-        psql_conn  = engine.connect()
 
-        #Read SQL files for CREATE TABLE 
+        engine = create_engine(DIALECT + db_uri)
+        psql_conn = engine.connect()
+
+        # Read SQL files for CREATE TABLE 
         if not run_sql_from_file(DATADIR + '/code/sqlCreatingDatabase.sql', psql_conn):
             return
 
         # Read excel file and insert into DB.
 
-        # NOTE: For some reason, the code for executing queries from an sql file ignores the case, so all tables and attributes in the DB are lower-cased. So, until this is fixed, all columns in dataframes need to be lowercased.
+        # NOTE: For some reason, the code for executing queries from an sql file ignores the case,
+        # so all tables and attributes in the DB are lower-cased.
+        # So, until this is fixed, all columns in dataframes need to be lowercased.
 
         # Excel file location
         excel_file = DATADIR + '/data/vaccine-distribution-data.xlsx'
 
-        # Example code for VaccineType data:
-        # sheet_name option chooses which excel sheet is read. You can use an index (from 0), its name, or a list of indices/names. None option reads all sheets, producing a dictionary (Name of sheet -> its dataframe).
+
+        # Populate VaccineType -> vaccine_type
         dfVaccType = pd.read_excel(excel_file, sheet_name='VaccineType')
-        dfVaccType = dfVaccType.rename(columns={'ID' : 'vaccID'})
-        dfVaccType = dfVaccType.rename(str.lower, axis='columns') # Make all column names lower-case
+        dfVaccType = dfVaccType.rename(columns={
+            'tempMin': 'temp_min',
+            'tempMax': 'temp_max'})
+        dfVaccType = dfVaccType.rename(str.lower, axis='columns')
+        dfVaccType.to_sql('vaccine_type', con=psql_conn, if_exists='append', index=False)
 
-        # The dataframe df is written into an SQL table 'vaccinetype'
-        dfVaccType.to_sql('vaccinetype', con=psql_conn, if_exists='append', index=False)
 
-
-        # Populating Manufacturer table
+        # Populating Manufacturer -> manufacturer
         dfManuf = pd.read_excel(excel_file, sheet_name='Manufacturer')
-        dfManuf = dfManuf.rename(columns={'country' : 'origin'})
-        dfManuf = dfManuf.rename(columns={'phone' : 'contactNumber'})
-        dfManuf = dfManuf.rename(columns={'vaccine' : 'vaccineID'})
-        dfManuf = dfManuf.rename(str.lower, axis='columns') # Make all column names lower-case
-
+        dfManuf = dfManuf.rename(columns={
+            'id':      'id',
+            'country': 'origin',
+            'vaccine': 'vaccine_type'})
+        dfManuf = dfManuf.rename(str.lower, axis='columns')
         dfManuf.to_sql('manufacturer', con=psql_conn, if_exists='append', index=False)
 
-        # Populating hospital
+
+        # Populating VaccinationStations -> hospital
         dfHospital = pd.read_excel(excel_file, sheet_name='VaccinationStations')
         dfHospital = dfHospital.rename(str.lower, axis='columns')
-
         dfHospital.to_sql('hospital', con=psql_conn, if_exists='append', index=False)
 
-        # Populating Batch table
+
+        # Populating VaccineBatch -> batch
         dfBatch = pd.read_excel(excel_file, sheet_name='VaccineBatch')
-
-        dfBatch = dfBatch.rename(columns={'amount' : 'numberOfVacc'})        
-        dfBatch = dfBatch.rename(columns={'type' : 'vaccType'})        
-        dfBatch = dfBatch.rename(columns={'manufDate' : 'prodDate'})
-        dfBatch = dfBatch.rename(columns={'expiration' : 'expDate'})
-        dfBatch = dfBatch.rename(str.lower, axis='columns') # Make all column names lower-case
-
+        dfBatch = dfBatch.rename(columns={
+            'batchID':    'id',
+            'amount':     'num_of_vacc',
+            'type':       'vaccine_type',
+            'manufDate':  'prod_date',
+            'expiration': 'exp_date',
+            'location':   'hospital'})
+        dfBatch = dfBatch.rename(str.lower, axis='columns')
         dfBatch.to_sql('batch', con=psql_conn, if_exists='append', index=False)
 
-        # Populating transportLog table
+
+        # Populating Transportation log -> transport_log
         dfLog = pd.read_excel(excel_file, sheet_name='Transportation log')
-        dfLog = dfLog.rename(columns={'departure ' : 'depHos', 'arrival' : 'arrHos', 'dateArr' : 'arrDate', 'dateDep' : 'depDate'})
+        dfLog = dfLog.rename(columns={
+            'batchID':    'batch',
+            'departure ': 'dep_hos',
+            'arrival':    'arr_hos',
+            'dateArr':    'arr_date',
+            'dateDep':    'dep_date'})
         dfLog = dfLog.rename(str.lower, axis='columns')
+        dfLog.to_sql('transport_log', con=psql_conn, if_exists='append', index=False)
 
-        dfLog.to_sql('transportlog', con=psql_conn, if_exists='append', index=False)
 
-        # Populating Staff table
-        dfStaff = pd.read_excel(
-            DATADIR + '/data/vaccine-distribution-data.xlsx', sheet_name='StaffMembers')
-        dfStaff = dfStaff.rename(
-            columns={'social security number': 'ssN',
-                     'date of birth': 'birthday',
-                     'vaccination status': 'vacc_status'}
-        )
-        dfStaff['vacc_status']= dfStaff['vacc_status'].astype('bool')
+        # Populating StaffMembers -> staff
+        dfStaff = pd.read_excel(excel_file, sheet_name='StaffMembers')
+        dfStaff = dfStaff.rename(columns={
+            'social security number': 'ssn',
+            'date of birth':          'birthday',
+            'vaccination status':     'vacc_status'})
+        dfStaff['vacc_status'] = dfStaff['vacc_status'].astype('bool')
         dfStaff = dfStaff.rename(str.lower, axis='columns')
-
         dfStaff.to_sql('staff', con=psql_conn, if_exists='append', index=False)
 
-        # Populating Shift table
-        dfVaccShift = pd.read_excel(
-            DATADIR + '/data/vaccine-distribution-data.xlsx', sheet_name='Shifts')
+
+        # Populating Shifts -> vaccination_shift
+        dfVaccShift = pd.read_excel(excel_file, sheet_name='Shifts')
         dfVaccShift = dfVaccShift.rename(columns={'station': 'hospital'})
         dfVaccShift = dfVaccShift.rename(str.lower, axis='columns')
-        dfVaccShift.to_sql('vaccinationshift', con=psql_conn,
-                           if_exists='append', index=False)
+        dfVaccShift.to_sql('vaccination_shift', con=psql_conn, if_exists='append', index=False)
 
-        # Populating Vaccination table
+
+        # Populating Vaccinations -> vaccination_event
         vaccine_df = pd.read_excel(excel_file, sheet_name='Vaccinations')
         vaccine_df['date'] = pd.to_datetime(vaccine_df['date'])
         vaccine_df.columns = vaccine_df.columns.str.strip()
-        vaccine_df = vaccine_df.rename(columns={'batchID': 'batchid'})
+        vaccine_df = vaccine_df.rename(columns={
+            'batchID':  'batch',
+            'location': 'hospital'})
         vaccine_df = vaccine_df.rename(str.lower, axis='columns')
-
         vaccine_df.to_sql('vaccination_event', con=psql_conn, if_exists='append', index=False)
 
-        # Populating Vaccine Patients
-        vacc_patient_df = pd.read_excel(excel_file, sheet_name='VaccinePatients')
-        vacc_patient_df['date'] = pd.to_datetime(vacc_patient_df['date'])
-        vacc_patient_df.columns = vacc_patient_df.columns.str.strip()
-        vacc_patient_df = vacc_patient_df.rename(columns={'patientSsNo': 'patientssn'})
-        vacc_patient_df = vacc_patient_df.rename(str.lower, axis='columns')
 
-        vacc_patient_df.to_sql('vaccine_patient', con=psql_conn, if_exists='append', index=False)
-
-        # Populating patient info
+        # Populating Patients -> patient
         dfPatient = pd.read_excel(excel_file, sheet_name='Patients')
         dfPatient = dfPatient.rename(columns={
-            'ssNo': 'ssn',
-            'date of birth': 'birthday',
-        })
+            'ssNo':          'ssn',
+            'date of birth': 'birthday'})
         dfPatient = dfPatient.rename(str.lower, axis='columns')
         dfPatient.to_sql('patient', con=psql_conn, if_exists='append', index=False)
 
-        # Populating symptom criticality info
+
+        # Populating VaccinePatients -> vaccine_patient
+        vacc_patient_df = pd.read_excel(excel_file, sheet_name='VaccinePatients')
+        vacc_patient_df['date'] = pd.to_datetime(vacc_patient_df['date'])
+        vacc_patient_df.columns = vacc_patient_df.columns.str.strip()
+        vacc_patient_df = vacc_patient_df.rename(columns={
+            'patientSsNo': 'patient',
+            'location':    'hospital'})
+        vacc_patient_df = vacc_patient_df.rename(str.lower, axis='columns')
+        vacc_patient_df.to_sql('vaccine_patient', con=psql_conn, if_exists='append', index=False)
+
+
+        # Populating Symptoms -> symptoms
         dfSymptoms = pd.read_excel(excel_file, sheet_name='Symptoms')
-        dfSymptoms = dfSymptoms.rename(columns={
-            'criticality': 'critical',
-        })
+        dfSymptoms = dfSymptoms.rename(columns={'criticality': 'critical'})
         dfSymptoms = dfSymptoms.rename(str.lower, axis='columns')
         dfSymptoms['critical']= dfSymptoms['critical'].astype('bool')
         dfSymptoms.to_sql('symptoms', con=psql_conn, if_exists='append', index=False)
 
-        # Populating diagnosis info
+
+        # Populating Diagnosis -> diagnosis
         dfDiagnosis = pd.read_excel(excel_file, sheet_name='Diagnosis')
-        dfDiagnosis = dfDiagnosis.rename(columns={
-            'patient': 'ssn',
-        })
         dfDiagnosis = dfDiagnosis.drop(dfDiagnosis[dfDiagnosis['date'].map(lambda x: not isinstance(x, datetime.datetime))].index)
         dfDiagnosis = dfDiagnosis.rename(str.lower, axis='columns')
         dfDiagnosis.to_sql('diagnosis', con=psql_conn, if_exists='append', index=False)
-
 
     except (Exception, Error) as error:
         print("Error while connecting to PostgreSQL", error)
     finally:
         if (connection):
             psql_conn.close()
-            # cursor.close()
             connection.close()
             print("PostgreSQL connection is closed")
 main()
