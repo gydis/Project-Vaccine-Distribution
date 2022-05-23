@@ -8,6 +8,20 @@ SELECT DISTINCT staff.ssn, staff.name, staff.birthday, staff.phone, staff.role, 
 FROM staff, vaccination_shift
 WHERE staff.ssn = vaccination_shift.worker AND staff.role = 'doctor' AND  staff.ssn IN (SELECT staff.ssn FROM staff, vaccination_shift WHERE vaccination_shift.weekday = 'Wednesday' AND vaccination_shift.worker = staff.ssn); 
 
+-- Query 5
+SELECT patient.*, COALESCE((COUNT(patient.ssn) >= MIN(vt.doses))::INT, 0) as "vaccinationStatus"
+FROM patient
+LEFT JOIN vaccine_patient as vp
+ON vp.patient = patient.ssn
+LEFT JOIN vaccination_event as ve
+ON ve.date = vp.date AND ve.hospital = vp.hospital
+LEFT JOIN batch
+ON batch.id = ve.batch
+LEFT JOIN vaccine_type as vt
+ON vt.id = batch.vaccine_type
+GROUP BY patient.ssn
+ORDER BY patient.ssn;
+
 -- Query 6
 SELECT hospital.name AS hospital_name, SUM(batch.num_of_vacc) AS total_vaccines, 
 SUM(case when vaccine_type='V01' then batch.num_of_vacc else 0 end) as "V01_amount",
