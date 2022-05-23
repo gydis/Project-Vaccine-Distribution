@@ -96,5 +96,5 @@ CREATE TABLE IF NOT EXISTS diagnosis (
 );
 
 -- Command to drop all the relations (I'll just store it here for convenience.)
--- DROP TABLE batch,hospital,manufacturer,staff,vaccinationshift,transportlog,vaccinetype,vaccination_event,vaccine_patient;
+-- DROP TABLE batch,hospital,manufacturer,staff,vaccinationshift,transportlog,vaccinetype,vaccination_event,vaccine_patient,diagnosis, patient, symptoms;
 

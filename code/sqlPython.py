@@ -163,6 +163,7 @@ def main():
             columns={'social security number': 'ssN',
                      'date of birth': 'birthday', 'vaccination status': 'vaccStatus'}
         )
+        dfStaff['vaccStatus']= dfStaff['vaccStatus'].astype('bool')
         dfStaff = dfStaff.rename(str.lower, axis='columns')
 
         dfStaff.to_sql('staff', con=psql_conn, if_exists='append', index=False)
