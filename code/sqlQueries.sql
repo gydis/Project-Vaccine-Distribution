@@ -9,6 +9,7 @@ FROM staff, vaccination_shift
 WHERE staff.ssn = vaccination_shift.worker AND staff.role = 'doctor' AND  staff.ssn IN (SELECT staff.ssn FROM staff, vaccination_shift WHERE vaccination_shift.weekday = 'Wednesday' AND vaccination_shift.worker = staff.ssn); 
 
 -- Query 5
+CREATE VIEW patient_status AS
 SELECT patient.*, COALESCE((COUNT(patient.ssn) >= MIN(vt.doses))::INT, 0) as "vaccinationStatus"
 FROM patient
 LEFT JOIN vaccine_patient as vp
