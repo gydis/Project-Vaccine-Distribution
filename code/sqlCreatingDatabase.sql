@@ -42,40 +42,43 @@ CREATE TABLE Manufacturer (
 );
 
 CREATE TABLE staff (
-    ssN TEXT PRIMARY KEY,
+    ssn TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     birthday DATE NOT NULL, 
     phone TEXT NOT NULL,
     role TEXT NOT NULL,
-    vaccStatus BOOLEAN NOT NULL, 
-    hospital TEXT REFERENCES hospital(name) 
+    vacc_status INT CHECK(vacc_status == 1 OR vacc_status == 0) NOT NULL,
+    hospital TEXT NOT NULL,
+    FOREIGN KEY hospital REFERENCES hospital(name)
 );
 
 CREATE TABLE vaccinationshift (
-    hospital TEXT REFERENCES hospital(name) NOT NULL,
+    hospital TEXT NOT NULL,
     weekday TEXT NOT NULL,
-    worker TEXT REFERENCES staff(ssN) NOT NULL,
-    PRIMARY KEY (worker, weekday) 
+    worker TEXT NOT NULL,
+    PRIMARY KEY (worker, weekday, hospital),
+    FOREIGN KEY(hospital) REFERENCES hospital(name),
+    FOREIGN KEY(worker) REFERENCES staff(ssn)
 );
 
 CREATE TABLE vaccination_event (
     date        date,
     location    TEXT NOT NULL,
-    "batchID"   TEXT NOT NULL,
+    batchid   TEXT NOT NULL,
     PRIMARY KEY(date, location),
     FOREIGN KEY(location) REFERENCES hospital(name),
-    FOREIGN KEY("batchID") REFERENCES batch(batchid)
+    FOREIGN KEY(batchid) REFERENCES batch(batchid)
 );
 
 CREATE TABLE vaccine_patient (
-    "patientSsNo" TEXT,
+    patientssn TEXT,
     date        date NOT NULL,
     location    TEXT NOT NULL,
-    PRIMARY KEY("patientSsNo", date)
+    PRIMARY KEY(patientssn, date)
 );
 
 CREATE TABLE IF NOT EXISTS patient (
-    ssN TEXT PRIMARY KEY,
+    ssn TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     birthday DATE NOT NULL,
     gender CHAR(1) NOT NULL
@@ -91,7 +94,7 @@ CREATE TABLE IF NOT EXISTS diagnosis (
     symptom TEXT NOT NULL,
     date DATE NOT NULL,
     PRIMARY KEY(ssn, symptom, date),
-    FOREIGN KEY(ssn) REFERENCES patient(ssN),
+    FOREIGN KEY(ssn) REFERENCES patient(ssn),
     FOREIGN KEY(symptom) REFERENCES symptoms(name)
 );
 
