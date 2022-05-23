@@ -28,6 +28,7 @@ from sqlalchemy import create_engine, text
 import pandas as pd
 import numpy as np
 from pathlib import Path
+import datetime
 
 def run_sql_from_file(sql_file, psql_conn):
     '''
@@ -184,6 +185,33 @@ def main():
         vacc_patient_df['date'] = pd.to_datetime(vacc_patient_df['date'])
         vacc_patient_df.columns = vacc_patient_df.columns.str.strip()
         vacc_patient_df.to_sql('vaccine_patient', con=psql_conn, if_exists='append', index=False)
+
+        # Populating patient info
+        dfPatient = pd.read_excel(excel_file, sheet_name='Patients')
+        dfPatient = dfPatient.rename(columns={
+            'ssNo': 'ssN',
+            'date of birth': 'birthday',
+        })
+        dfPatient = dfPatient.rename(str.lower, axis='columns')
+        dfPatient.to_sql('patient', con=psql_conn, if_exists='append', index=False)
+
+        # Populating symptom criticality info
+        dfSymptoms = pd.read_excel(excel_file, sheet_name='Symptoms')
+        dfSymptoms = dfSymptoms.rename(columns={
+            'criticality': 'critical',
+        })
+        dfSymptoms = dfSymptoms.rename(str.lower, axis='columns')
+        dfSymptoms.to_sql('symptoms', con=psql_conn, if_exists='append', index=False)
+
+        # Populating diagnosis info
+        dfDiagnosis = pd.read_excel(excel_file, sheet_name='Diagnosis')
+        dfDiagnosis = dfDiagnosis.rename(columns={
+            'patient': 'ssn',
+        })
+        dfDiagnosis = dfDiagnosis.drop(dfDiagnosis[dfDiagnosis['date'].map(lambda x: not isinstance(x, datetime.datetime))].index)
+        dfDiagnosis = dfDiagnosis.rename(str.lower, axis='columns')
+        dfDiagnosis.to_sql('diagnosis', con=psql_conn, if_exists='append', index=False)
+
         # Modify the tests below if you want to see the results of your operations (or use psql to see the changes)
 
         # test

@@ -74,6 +74,27 @@ CREATE TABLE vaccine_patient (
     PRIMARY KEY("patientSsNo", date)
 );
 
+CREATE TABLE IF NOT EXISTS patient (
+    ssN TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    birthday DATE NOT NULL,
+    gender CHAR(1) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS symptoms (
+    name TEXT PRIMARY KEY,
+    critical INT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS diagnosis (
+    ssn TEXT NOT NULL,
+    symptom TEXT NOT NULL,
+    date DATE NOT NULL,
+    PRIMARY KEY(ssn, symptom, date),
+    FOREIGN KEY(ssn) REFERENCES patient(ssN),
+    FOREIGN KEY(symptom) REFERENCES symptoms(name)
+);
+
 -- Command to drop all the relations (I'll just store it here for convenience.)
 -- DROP TABLE batch,hospital,manufacturer,staff,vaccinationshift,transportlog,vaccinetype,vaccination_event,vaccine_patient;
 
