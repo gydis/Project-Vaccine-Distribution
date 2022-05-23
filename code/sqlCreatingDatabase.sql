@@ -124,6 +124,7 @@ CREATE TABLE vaccine_patient (
     hospital TEXT NOT NULL,
 
     PRIMARY KEY(patient, date),
+    FOREIGN KEY(date, hospital) REFERENCES vaccination_event(date, hospital),
     FOREIGN KEY(patient) REFERENCES patient(ssn),
     FOREIGN KEY(hospital) REFERENCES hospital(name)
 );
