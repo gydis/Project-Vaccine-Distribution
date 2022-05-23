@@ -1,5 +1,18 @@
 -- For some reason, the case of tables and attributes' names is ignored. Idk what causes it...
-DROP TABLE batch,hospital,manufacturer,staff,vaccinationshift,transportlog,vaccinetype,vaccination_event,vaccine_patient,diagnosis, patient, symptoms CASCADE;
+DROP TABLE IF EXISTS
+    batch,
+    hospital,
+    manufacturer,
+    staff,
+    vaccinationshift,
+    transportlog,
+    vaccinetype,
+    vaccination_event,
+    vaccine_patient,
+    diagnosis,
+    patient,
+    symptoms
+CASCADE;
 
 CREATE TABLE IF NOT EXISTS vaccineType (
     vaccID TEXT PRIMARY KEY,
