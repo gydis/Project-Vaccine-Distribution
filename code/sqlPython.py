@@ -180,13 +180,15 @@ def main():
         #vaccine_df['date'] = pd.to_datetime(vaccine_df['date'])
         #vaccine_df.columns = vaccine_df.columns.str.strip()
         vaccine_df = vaccine_df.rename(columns={'batchID': 'batchid'})
+        vaccine_df = vaccine_df.rename(str.lower, axis='columns')
         vaccine_df.to_sql('vaccination_event', con=psql_conn, if_exists='append', index=False)
 
         # Populating Vaccine Patients
         vacc_patient_df = pd.read_excel(excel_file, sheet_name='VaccinePatients')
         #vacc_patient_df['date'] = pd.to_datetime(vacc_patient_df['date'])
-        vacc_patient_df = vacc_patient_df.rename(columns={'patientSsNo': 'ssn'})
+        vacc_patient_df = vacc_patient_df.rename(columns={'patientSsNo': 'patientssn'})
         #vacc_patient_df.columns = vacc_patient_df.columns.str.strip()
+        vacc_patient_df = dfStaff.rename(str.lower, axis='columns')
         vacc_patient_df.to_sql('vaccine_patient', con=psql_conn, if_exists='append', index=False)
 
         # Populating patient info
