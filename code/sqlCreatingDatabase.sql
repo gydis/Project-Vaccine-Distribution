@@ -1,4 +1,5 @@
 -- For some reason, the case of tables and attributes' names is ignored. Idk what causes it...
+DROP TABLE batch,hospital,manufacturer,staff,vaccinationshift,transportlog,vaccinetype,vaccination_event,vaccine_patient,diagnosis, patient, symptoms;
 
 CREATE TABLE IF NOT EXISTS vaccineType (
     vaccID TEXT PRIMARY KEY,
@@ -99,5 +100,5 @@ CREATE TABLE IF NOT EXISTS diagnosis (
 );
 
 -- Command to drop all the relations (I'll just store it here for convenience.)
--- DROP TABLE batch,hospital,manufacturer,staff,vaccinationshift,transportlog,vaccinetype,vaccination_event,vaccine_patient,diagnosis, patient, symptoms;
+
 
