@@ -30,36 +30,31 @@ import numpy as np
 from pathlib import Path
 import datetime
 
-def run_sql_from_file(sql_file, psql_conn):
+def run_sql_from_file(file_path, conn):
     '''
-	read a SQL file with multiple stmts and process it
-	adapted from an idea by JF Santos
-	Note: not really needed when using dataframes.
+    Read and run SQL queries from a file at file_path.
     '''
-    sql_command = ''
-    for line in sql_file:
-        #if line.startswith('VALUES'):        
-     # Ignore commented lines
-        if not line.startswith('--') and line.strip('\n'):        
-        # Append line to the command string, prefix with space
-           sql_command +=  ' ' + line.strip('\n')
-           #sql_command = ' ' + sql_command + line.strip('\n')
-        # If the command string ends with ';', it is a full statement
-        if sql_command.endswith(';'):
-            # Try to execute statement and commit it
-            try:
-                #print("running " + sql_command+".") 
-                psql_conn.execute(text(sql_command))
-                #psql_conn.commit()
-            # Assert in case of error
-            except:
-                print('Error at command:'+sql_command + ".")
-                ret_ =  False
-            # Finally, clear command string
-            finally:
-                sql_command = ''           
-                ret_ = True
-    return ret_
+    ok = True
+    with open(file_path, 'r') as file:
+        sql_cmd = ''
+        for line in file:
+            i = line.find('--')
+            if i != -1:
+                line = line[:i]
+            line = line.strip()
+            if line == '':
+                # Empty or comment-only line
+                continue
+
+            sql_cmd += ' ' + line
+            if line.endswith(';'):
+                try:
+                    conn.execute(text(sql_cmd))
+                except Exception as e:
+                    print(f'Error at cmd {sql_cmd}\n  {e}\n')
+                    ok = False
+                sql_cmd = ''
+    return ok
 
 def main():
     DATADIR = str(Path(__file__).parent.parent) # for relative path 
@@ -104,7 +99,8 @@ def main():
         psql_conn  = engine.connect()
 
         #Read SQL files for CREATE TABLE 
-        run_sql_from_file (sql_file1, psql_conn)
+        if not run_sql_from_file(DATADIR + '/code/sqlCreatingDatabase.sql', psql_conn):
+            return
 
         # Read excel file and insert into DB.
 
