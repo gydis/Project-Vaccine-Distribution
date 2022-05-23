@@ -157,9 +157,10 @@ def main():
             DATADIR + '/data/vaccine-distribution-data.xlsx', sheet_name='StaffMembers')
         dfStaff = dfStaff.rename(
             columns={'social security number': 'ssN',
-                     'date of birth': 'birthday', 'vaccination status': 'vaccStatus'}
+                     'date of birth': 'birthday',
+                     'vaccination status': 'vacc_status'}
         )
-        dfStaff['vaccStatus']= dfStaff['vaccStatus'].astype('bool')
+        dfStaff['vacc_status']= dfStaff['vacc_status'].astype('bool')
         dfStaff = dfStaff.rename(str.lower, axis='columns')
 
         dfStaff.to_sql('staff', con=psql_conn, if_exists='append', index=False)
@@ -193,7 +194,7 @@ def main():
         # Populating patient info
         dfPatient = pd.read_excel(excel_file, sheet_name='Patients')
         dfPatient = dfPatient.rename(columns={
-            'ssno': 'ssn',
+            'ssNo': 'ssn',
             'date of birth': 'birthday',
         })
         dfPatient = dfPatient.rename(str.lower, axis='columns')

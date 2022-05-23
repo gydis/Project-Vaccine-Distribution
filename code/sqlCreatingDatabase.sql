@@ -61,9 +61,9 @@ CREATE TABLE IF NOT EXISTS staff (
     birthday DATE NOT NULL, 
     phone TEXT NOT NULL,
     role TEXT NOT NULL,
-    vacc_status INT CHECK(vacc_status == 1 OR vacc_status == 0) NOT NULL,
+    vacc_status BOOLEAN NOT NULL,
     hospital TEXT NOT NULL,
-    FOREIGN KEY hospital REFERENCES hospital(name)
+    FOREIGN KEY(hospital) REFERENCES hospital(name)
 );
 
 CREATE TABLE IF NOT EXISTS vaccinationshift (
