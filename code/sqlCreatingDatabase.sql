@@ -1,6 +1,6 @@
 -- For some reason, the case of tables and attributes' names is ignored. Idk what causes it...
 
-CREATE TABLE vaccineType (
+CREATE TABLE IF NOT EXISTS vaccineType (
     vaccID TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     doses INT NOT NULL CONSTRAINT positive_doses CHECK (doses > 0),
@@ -8,13 +8,13 @@ CREATE TABLE vaccineType (
     tempMax INT NOT NULL
 );
 
-CREATE TABLE hospital (
+CREATE TABLE IF NOT EXISTS hospital (
     name TEXT PRIMARY KEY,
     address TEXT NOT NULL,
     phone TEXT NOT NULL
 );
 
-CREATE TABLE batch (
+CREATE TABLE IF NOT EXISTS batch (
     batchID TEXT PRIMARY KEY, 
     numberOfVacc INT CONSTRAINT positive_num_of_vacc CHECK (numberOfVacc > 0),
     vaccType TEXT NOT NULL,
@@ -25,7 +25,7 @@ CREATE TABLE batch (
     FOREIGN KEY (vaccType) REFERENCES vaccineType (vaccID)
 );
 
-CREATE TABLE transportLog (
+CREATE TABLE IF NOT EXISTS transportLog (
     batchID TEXT REFERENCES batch,
     depHos TEXT REFERENCES hospital,
     arrHos TEXT REFERENCES hospital,
@@ -34,14 +34,14 @@ CREATE TABLE transportLog (
     PRIMARY KEY (batchID, depHos, arrHos, depDate, arrDate)
 );
 
-CREATE TABLE Manufacturer (
+CREATE TABLE IF NOT EXISTS Manufacturer (
     ID TEXT PRIMARY KEY,
     origin TEXT NOT NULL,
     contactNumber TEXT NOT NULL,
     vaccineID TEXT NOT NULL
 );
 
-CREATE TABLE staff (
+CREATE TABLE IF NOT EXISTS staff (
     ssn TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     birthday DATE NOT NULL, 
@@ -52,7 +52,7 @@ CREATE TABLE staff (
     FOREIGN KEY hospital REFERENCES hospital(name)
 );
 
-CREATE TABLE vaccinationshift (
+CREATE TABLE IF NOT EXISTS vaccinationshift (
     hospital TEXT NOT NULL,
     weekday TEXT NOT NULL,
     worker TEXT NOT NULL,
@@ -61,7 +61,7 @@ CREATE TABLE vaccinationshift (
     FOREIGN KEY(worker) REFERENCES staff(ssn)
 );
 
-CREATE TABLE vaccination_event (
+CREATE TABLE IF NOT EXISTS vaccination_event (
     date        date,
     location    TEXT NOT NULL,
     batchid   TEXT NOT NULL,
@@ -70,7 +70,7 @@ CREATE TABLE vaccination_event (
     FOREIGN KEY(batchid) REFERENCES batch(batchid)
 );
 
-CREATE TABLE vaccine_patient (
+CREATE TABLE IF NOT EXISTS vaccine_patient (
     patientssn TEXT,
     date        date NOT NULL,
     location    TEXT NOT NULL,
