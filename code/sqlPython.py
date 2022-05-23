@@ -51,7 +51,7 @@ def run_sql_from_file(file_path, conn):
                 try:
                     conn.execute(text(sql_cmd))
                 except Exception as e:
-                    print(f'Error at cmd {sql_cmd}\n  {e}\n\n\n')
+                    print(f'\nError while executing SQL:\n{e}\n')
                     ok = False
                 sql_cmd = ''
     return ok

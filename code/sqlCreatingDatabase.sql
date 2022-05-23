@@ -89,6 +89,7 @@ CREATE TABLE IF NOT EXISTS vaccine_patient (
     date        date NOT NULL,
     location    TEXT NOT NULL,
     PRIMARY KEY(patientssn, date)
+);
 
 CREATE TABLE IF NOT EXISTS patient (
     ssn TEXT PRIMARY KEY,
@@ -110,7 +111,3 @@ CREATE TABLE IF NOT EXISTS diagnosis (
     FOREIGN KEY(ssn) REFERENCES patient(ssn),
     FOREIGN KEY(symptom) REFERENCES symptoms(name)
 );
-
--- Command to drop all the relations (I'll just store it here for convenience.)
-
-
