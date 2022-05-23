@@ -27,6 +27,16 @@ CREATE TABLE vaccine_type (
     CONSTRAINT temp_min_less_than_max CHECK (temp_min < temp_max)
 );
 
+CREATE TABLE manufacturer (
+    id           TEXT NOT NULL,
+    origin       TEXT NOT NULL,
+    phone        TEXT NOT NULL,
+    vaccine_type TEXT NOT NULL,
+
+    PRIMARY KEY(id),
+    FOREIGN KEY(vaccine_type) REFERENCES vaccine_type(id)
+);
+
 CREATE TABLE hospital (
     name    TEXT NOT NULL,
     address TEXT NOT NULL,
@@ -47,6 +57,7 @@ CREATE TABLE batch (
     PRIMARY KEY(id),
     FOREIGN KEY(vaccine_type) REFERENCES vaccine_type(id),
     FOREIGN KEY(hospital) REFERENCES hospital(name),
+    FOREIGN KEY(manufacturer) REFERENCES manufacturer(id),
 
     CONSTRAINT positive_num_of_vacc CHECK(num_of_vacc > 0),
     CONSTRAINT date_prod_less_than_exp CHECK(prod_date < exp_date)
@@ -63,16 +74,6 @@ CREATE TABLE transport_log (
     FOREIGN KEY(batch) REFERENCES batch(id),
     FOREIGN KEY(dep_hos) REFERENCES hospital(name),
     FOREIGN KEY(arr_hos) REFERENCES hospital(name)
-);
-
-CREATE TABLE manufacturer (
-    id           TEXT NOT NULL,
-    origin       TEXT NOT NULL,
-    phone        TEXT NOT NULL,
-    vaccine_type TEXT NOT NULL,
-
-    PRIMARY KEY(id),
-    FOREIGN KEY(vaccine_type) REFERENCES vaccine_type(id)
 );
 
 CREATE TABLE staff (
