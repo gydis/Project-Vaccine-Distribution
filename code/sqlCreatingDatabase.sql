@@ -63,20 +63,19 @@ CREATE TABLE IF NOT EXISTS vaccinationshift (
 );
 
 CREATE TABLE IF NOT EXISTS vaccination_event (
-    date        DATE NOT NULL,
+    date        date,
     location    TEXT NOT NULL,
-    batchid   TEXT NOT NULL,
+    batchid     TEXT NOT NULL,
     PRIMARY KEY(date, location),
     FOREIGN KEY(location) REFERENCES hospital(name),
     FOREIGN KEY(batchid) REFERENCES batch(batchid)
 );
 
 CREATE TABLE IF NOT EXISTS vaccine_patient (
-    patientssn TEXT,
+    patientssn  TEXT,
     date        date NOT NULL,
     location    TEXT NOT NULL,
     PRIMARY KEY(patientssn, date)
-);
 
 CREATE TABLE IF NOT EXISTS patient (
     ssn TEXT PRIMARY KEY,
