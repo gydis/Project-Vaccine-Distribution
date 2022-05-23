@@ -206,6 +206,7 @@ def main():
             'criticality': 'critical',
         })
         dfSymptoms = dfSymptoms.rename(str.lower, axis='columns')
+        dfSymptoms['critical']= dfSymptoms['critical'].astype('bool')
         dfSymptoms.to_sql('symptoms', con=psql_conn, if_exists='append', index=False)
 
         # Populating diagnosis info

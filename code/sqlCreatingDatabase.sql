@@ -14,7 +14,7 @@ DROP TABLE IF EXISTS
     symptoms
 CASCADE;
 
-CREATE TABLE IF NOT EXISTS vaccineType (
+CREATE TABLE vaccineType (
     vaccID TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     doses INT NOT NULL CONSTRAINT positive_doses CHECK (doses > 0),
@@ -22,13 +22,13 @@ CREATE TABLE IF NOT EXISTS vaccineType (
     tempMax INT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS hospital (
+CREATE TABLE hospital (
     name TEXT PRIMARY KEY,
     address TEXT NOT NULL,
     phone TEXT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS batch (
+CREATE TABLE batch (
     batchID TEXT PRIMARY KEY, 
     numberOfVacc INT CONSTRAINT positive_num_of_vacc CHECK (numberOfVacc > 0),
     vaccType TEXT NOT NULL,
@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS batch (
     FOREIGN KEY (vaccType) REFERENCES vaccineType (vaccID)
 );
 
-CREATE TABLE IF NOT EXISTS transportLog (
+CREATE TABLE transportLog (
     batchID TEXT REFERENCES batch,
     depHos TEXT REFERENCES hospital,
     arrHos TEXT REFERENCES hospital,
@@ -48,14 +48,14 @@ CREATE TABLE IF NOT EXISTS transportLog (
     PRIMARY KEY (batchID, depHos, arrHos, depDate, arrDate)
 );
 
-CREATE TABLE IF NOT EXISTS Manufacturer (
+CREATE TABLE Manufacturer (
     ID TEXT PRIMARY KEY,
     origin TEXT NOT NULL,
     contactNumber TEXT NOT NULL,
     vaccineID TEXT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS staff (
+CREATE TABLE staff (
     ssn TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     birthday DATE NOT NULL, 
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS staff (
     FOREIGN KEY(hospital) REFERENCES hospital(name)
 );
 
-CREATE TABLE IF NOT EXISTS vaccinationshift (
+CREATE TABLE vaccinationshift (
     hospital TEXT NOT NULL,
     weekday TEXT NOT NULL,
     worker TEXT NOT NULL,
@@ -75,7 +75,7 @@ CREATE TABLE IF NOT EXISTS vaccinationshift (
     FOREIGN KEY(worker) REFERENCES staff(ssn)
 );
 
-CREATE TABLE IF NOT EXISTS vaccination_event (
+CREATE TABLE vaccination_event (
     date        date,
     location    TEXT NOT NULL,
     batchid     TEXT NOT NULL,
@@ -84,29 +84,32 @@ CREATE TABLE IF NOT EXISTS vaccination_event (
     FOREIGN KEY(batchid) REFERENCES batch(batchid)
 );
 
-CREATE TABLE IF NOT EXISTS vaccine_patient (
+CREATE TABLE vaccine_patient (
     patientssn  TEXT,
     date        date NOT NULL,
     location    TEXT NOT NULL,
     PRIMARY KEY(patientssn, date)
 );
 
-CREATE TABLE IF NOT EXISTS patient (
+CREATE TABLE patient (
     ssn TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     birthday DATE NOT NULL,
     gender CHAR(1) NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS symptoms (
-    name TEXT PRIMARY KEY,
-    critical INT NOT NULL
+CREATE TABLE symptoms (
+    name     TEXT NOT NULL,
+    critical BOOLEAN NOT NULL,
+
+    PRIMARY KEY(name)
 );
 
-CREATE TABLE IF NOT EXISTS diagnosis (
-    ssn TEXT NOT NULL,
+CREATE TABLE diagnosis (
+    ssn     TEXT NOT NULL,
     symptom TEXT NOT NULL,
-    date DATE NOT NULL,
+    date    DATE NOT NULL,
+
     PRIMARY KEY(ssn, symptom, date),
     FOREIGN KEY(ssn) REFERENCES patient(ssn),
     FOREIGN KEY(symptom) REFERENCES symptoms(name)
