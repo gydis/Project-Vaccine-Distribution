@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS vaccinationshift (
 );
 
 CREATE TABLE IF NOT EXISTS vaccination_event (
-    date        date,
+    date        DATE NOT NULL,
     location    TEXT NOT NULL,
     batchid   TEXT NOT NULL,
     PRIMARY KEY(date, location),
