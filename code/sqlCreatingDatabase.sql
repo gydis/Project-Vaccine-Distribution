@@ -1,4 +1,3 @@
--- For some reason, the case of tables and attributes' names is ignored. Idk what causes it...
 DROP TABLE IF EXISTS
     batch,
     diagnosis,
