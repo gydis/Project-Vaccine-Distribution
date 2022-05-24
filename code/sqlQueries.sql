@@ -81,3 +81,30 @@ SUM(case when vaccine_type='V03' then batch.num_of_vacc else 0 end) as "V03_amou
 FROM batch, hospital
 WHERE hospital.name = batch.hospital
 GROUP BY hospital.name;
+
+
+-- Query 7
+
+-- Find how many people were vaccinated with each vaccine
+
+-- SELECT vaccine_type.name, COUNT(DISTINCT vaccine_patient.patient)
+-- FROM vaccine_type, vaccine_patient, vaccination_event, batch
+-- WHERE vaccine_patient.date = vaccination_event.date
+-- AND vaccine_patient.hospital = vaccination_event.hospital
+-- AND batch.id = vaccination_event.batch
+-- AND (batch.vaccine_type = vaccine_type.id)
+-- GROUP BY vaccine_type.name;
+
+-- Find how many symptoms are associated with each vaccine
+
+-- SELECT vaccine_type.name, diagnosis.symptom, COUNT(DISTINCT vaccine_patient.patient)
+-- FROM diagnosis, patient, vaccination_event, vaccine_patient, batch, vaccine_type
+-- WHERE diagnosis.patient = vaccine_patient.patient
+-- AND vaccine_patient.date = vaccination_event.date -- DISTINCT at some point? subquery?
+-- AND vaccine_patient.date < diagnosis.date
+-- AND vaccine_patient.hospital = vaccination_event.hospital
+-- AND batch.id = vaccination_event.batch
+-- AND (batch.vaccine_type = vaccine_type.id)
+-- GROUP BY vaccine_type.name, diagnosis.symptom;
+
+
