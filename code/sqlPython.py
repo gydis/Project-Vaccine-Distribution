@@ -30,6 +30,9 @@ import numpy as np
 from pathlib import Path
 import datetime
 
+#NOTE TO GRADER: IF YOU WANT TO RUN THIS FILE, DON'T FORGET TO INSTALL requirements.txt.
+#We added new requirements there and this file might not work without them.
+
 def run_sql_from_file(file_path, conn):
     '''
     Read and run SQL queries from a file at file_path.
