@@ -226,6 +226,28 @@ def main():
         dfDiagnosis = dfDiagnosis.rename(str.lower, axis='columns')
         dfDiagnosis.to_sql('diagnosis', con=psql_conn, if_exists='append', index=False)
 
+
+        # Part 3 requirement 4
+        ageValues = ['0-9', '10-19', '20-39', '40-59', '60+']
+
+        now = pd.Timestamp('now')
+        dfPAge = dfPatient
+        dfPAge['birthday'] = pd.to_datetime(dfPAge['birthday'], format='%y%m%d')
+        dfPAge['age'] = (now - dfPAge['birthday']).astype('<m8[Y]')
+        print(dfPAge)
+
+        ageConditions = [
+            (dfPAge['age'] < 10),
+            (dfPAge['age'] >= 10) & (dfPAge['age'] < 20),
+            (dfPAge['age'] >= 20) & (dfPAge['age'] < 39),
+            (dfPAge['age'] >= 39) & (dfPAge['age'] < 59),
+            (dfPAge['age'] >= 60)
+        ]
+        dfPAge['ageGroup'] = np.select(ageConditions, ageValues)
+
+        # removing age column, as it's not rquired by the task
+        dfPAge.drop('age', axis=1, inplace=True)
+
     except (Exception, Error) as error:
         print("Error while connecting to PostgreSQL", error)
     finally:
