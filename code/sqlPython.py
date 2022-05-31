@@ -21,7 +21,7 @@ ADDITIONAL source for PostgreSQL
 2. comparing different methods of loading bulk data to postgreSQL:
     https://medium.com/analytics-vidhya/pandas-dataframe-to-postgresql-using-python-part-2-3ddb41f473bd
 
-''' 
+'''
 import psycopg2
 from psycopg2 import Error
 from sqlalchemy import create_engine, text
@@ -30,8 +30,9 @@ import numpy as np
 from pathlib import Path
 import datetime
 
-#NOTE TO GRADER: IF YOU WANT TO RUN THIS FILE, DON'T FORGET TO INSTALL requirements.txt.
-#We added new requirements there and this file might not work without them.
+
+# NOTE TO GRADER: IF YOU WANT TO RUN THIS FILE, DON'T FORGET TO INSTALL requirements.txt.
+# We added new requirements there and this file might not work without them.
 
 def run_sql_from_file(file_path, conn):
     '''
@@ -59,26 +60,27 @@ def run_sql_from_file(file_path, conn):
                 sql_cmd = ''
     return ok
 
+
 def main():
-    DATADIR = str(Path(__file__).parent.parent) # for relative path 
+    DATADIR = str(Path(__file__).parent.parent)  # for relative path
     print("Data directory: ", DATADIR)
 
     # In postgres=# shell: CREATE ROLE [role_name] WITH CREATEDB LOGIN PASSWORD '[pssword]'; 
     # https://www.postgresql.org/docs/current/sql-createrole.html
 
-    database="grp10_vaccinedist"
-    user='grp10'
-    password='VeKQ^hLf'
-    host='dbcourse2022.cs.aalto.fi'
+    database = "grp10_vaccinedist"
+    user = 'grp10'
+    password = 'VeKQ^hLf'
+    host = 'dbcourse2022.cs.aalto.fi'
     # use connect function to establish the connection
     try:
         # Connect the postgres database from your local machine using psycopg2
         connection = psycopg2.connect(
-                                        database=database,              
-                                        user=user,       
-                                        password=password,   
-                                        host=host
-                                    )
+            database=database,
+            user=user,
+            password=password,
+            host=host
+        )
 
         # Create a cursor to perform database operations
         cursor = connection.cursor()
@@ -94,12 +96,12 @@ def main():
         # Step 1: Connect to db using SQLAlchemy create_engine
         DIALECT = 'postgresql+psycopg2://'
         db_uri = "%s:%s@%s/%s" % (user, password, host, database)
-        print(DIALECT+db_uri)
+        print(DIALECT + db_uri)
 
         engine = create_engine(DIALECT + db_uri)
         psql_conn = engine.connect()
 
-        # Read SQL files for CREATE TABLE 
+        # Read SQL files for CREATE TABLE
         if not run_sql_from_file(DATADIR + '/code/sqlCreatingDatabase.sql', psql_conn):
             return
 
@@ -112,7 +114,6 @@ def main():
         # Excel file location
         excel_file = DATADIR + '/data/vaccine-distribution-data.xlsx'
 
-
         # Populate VaccineType -> vaccine_type
         dfVaccType = pd.read_excel(excel_file, sheet_name='VaccineType')
         dfVaccType = dfVaccType.rename(columns={
@@ -121,58 +122,52 @@ def main():
         dfVaccType = dfVaccType.rename(str.lower, axis='columns')
         dfVaccType.to_sql('vaccine_type', con=psql_conn, if_exists='append', index=False)
 
-
         # Populating Manufacturer -> manufacturer
         dfManuf = pd.read_excel(excel_file, sheet_name='Manufacturer')
         dfManuf = dfManuf.rename(columns={
-            'id':      'id',
+            'id': 'id',
             'country': 'origin',
             'vaccine': 'vaccine_type'})
         dfManuf = dfManuf.rename(str.lower, axis='columns')
         dfManuf.to_sql('manufacturer', con=psql_conn, if_exists='append', index=False)
-
 
         # Populating VaccinationStations -> hospital
         dfHospital = pd.read_excel(excel_file, sheet_name='VaccinationStations')
         dfHospital = dfHospital.rename(str.lower, axis='columns')
         dfHospital.to_sql('hospital', con=psql_conn, if_exists='append', index=False)
 
-
         # Populating VaccineBatch -> batch
         dfBatch = pd.read_excel(excel_file, sheet_name='VaccineBatch')
         dfBatch = dfBatch.rename(columns={
-            'batchID':    'id',
-            'amount':     'num_of_vacc',
-            'type':       'vaccine_type',
-            'manufDate':  'prod_date',
+            'batchID': 'id',
+            'amount': 'num_of_vacc',
+            'type': 'vaccine_type',
+            'manufDate': 'prod_date',
             'expiration': 'exp_date',
-            'location':   'hospital'})
+            'location': 'hospital'})
         dfBatch = dfBatch.rename(str.lower, axis='columns')
         dfBatch.to_sql('batch', con=psql_conn, if_exists='append', index=False)
-
 
         # Populating Transportation log -> transport_log
         dfLog = pd.read_excel(excel_file, sheet_name='Transportation log')
         dfLog = dfLog.rename(columns={
-            'batchID':    'batch',
+            'batchID': 'batch',
             'departure ': 'dep_hos',
-            'arrival':    'arr_hos',
-            'dateArr':    'arr_date',
-            'dateDep':    'dep_date'})
+            'arrival': 'arr_hos',
+            'dateArr': 'arr_date',
+            'dateDep': 'dep_date'})
         dfLog = dfLog.rename(str.lower, axis='columns')
         dfLog.to_sql('transport_log', con=psql_conn, if_exists='append', index=False)
-
 
         # Populating StaffMembers -> staff
         dfStaff = pd.read_excel(excel_file, sheet_name='StaffMembers')
         dfStaff = dfStaff.rename(columns={
             'social security number': 'ssn',
-            'date of birth':          'birthday',
-            'vaccination status':     'vacc_status'})
+            'date of birth': 'birthday',
+            'vaccination status': 'vacc_status'})
         dfStaff['vacc_status'] = dfStaff['vacc_status'].astype('bool')
         dfStaff = dfStaff.rename(str.lower, axis='columns')
         dfStaff.to_sql('staff', con=psql_conn, if_exists='append', index=False)
-
 
         # Populating Shifts -> vaccination_shift
         dfVaccShift = pd.read_excel(excel_file, sheet_name='Shifts')
@@ -180,26 +175,23 @@ def main():
         dfVaccShift = dfVaccShift.rename(str.lower, axis='columns')
         dfVaccShift.to_sql('vaccination_shift', con=psql_conn, if_exists='append', index=False)
 
-
         # Populating Vaccinations -> vaccination_event
         vaccine_df = pd.read_excel(excel_file, sheet_name='Vaccinations')
         vaccine_df['date'] = pd.to_datetime(vaccine_df['date'])
         vaccine_df.columns = vaccine_df.columns.str.strip()
         vaccine_df = vaccine_df.rename(columns={
-            'batchID':  'batch',
+            'batchID': 'batch',
             'location': 'hospital'})
         vaccine_df = vaccine_df.rename(str.lower, axis='columns')
         vaccine_df.to_sql('vaccination_event', con=psql_conn, if_exists='append', index=False)
 
-
         # Populating Patients -> patient
         dfPatient = pd.read_excel(excel_file, sheet_name='Patients')
         dfPatient = dfPatient.rename(columns={
-            'ssNo':          'ssn',
+            'ssNo': 'ssn',
             'date of birth': 'birthday'})
         dfPatient = dfPatient.rename(str.lower, axis='columns')
         dfPatient.to_sql('patient', con=psql_conn, if_exists='append', index=False)
-
 
         # Populating VaccinePatients -> vaccine_patient
         vacc_patient_df = pd.read_excel(excel_file, sheet_name='VaccinePatients')
@@ -207,25 +199,23 @@ def main():
         vacc_patient_df.columns = vacc_patient_df.columns.str.strip()
         vacc_patient_df = vacc_patient_df.rename(columns={
             'patientSsNo': 'patient',
-            'location':    'hospital'})
+            'location': 'hospital'})
         vacc_patient_df = vacc_patient_df.rename(str.lower, axis='columns')
         vacc_patient_df.to_sql('vaccine_patient', con=psql_conn, if_exists='append', index=False)
-
 
         # Populating Symptoms -> symptoms
         dfSymptoms = pd.read_excel(excel_file, sheet_name='Symptoms')
         dfSymptoms = dfSymptoms.rename(columns={'criticality': 'critical'})
         dfSymptoms = dfSymptoms.rename(str.lower, axis='columns')
-        dfSymptoms['critical']= dfSymptoms['critical'].astype('bool')
+        dfSymptoms['critical'] = dfSymptoms['critical'].astype('bool')
         dfSymptoms.to_sql('symptoms', con=psql_conn, if_exists='append', index=False)
-
 
         # Populating Diagnosis -> diagnosis
         dfDiagnosis = pd.read_excel(excel_file, sheet_name='Diagnosis')
-        dfDiagnosis = dfDiagnosis.drop(dfDiagnosis[dfDiagnosis['date'].map(lambda x: not isinstance(x, datetime.datetime))].index)
+        dfDiagnosis = dfDiagnosis.drop(
+            dfDiagnosis[dfDiagnosis['date'].map(lambda x: not isinstance(x, datetime.datetime))].index)
         dfDiagnosis = dfDiagnosis.rename(str.lower, axis='columns')
         dfDiagnosis.to_sql('diagnosis', con=psql_conn, if_exists='append', index=False)
-
 
         # Part 3 requirement 4
         ageValues = ['0-9', '10-19', '20-39', '40-59', '60+']
@@ -248,6 +238,37 @@ def main():
         # removing age column, as it's not rquired by the task
         dfPAge.drop('age', axis=1, inplace=True)
 
+        # Part 3 requirement 7
+        query_7 = """
+        WITH PATIENTS AS
+	        (SELECT SSN, PATIENT.NAME, DIAGNOSIS.SYMPTOM
+		    FROM PATIENT
+		    JOIN DIAGNOSIS ON PATIENT.SSN = DIAGNOSIS.PATIENT
+		    JOIN SYMPTOMS ON DIAGNOSIS.SYMPTOM = SYMPTOMS.NAME)
+        SELECT PATIENTS.NAME,
+	    PATIENTS.SYMPTOM,
+	    BATCH.ID,
+	    BATCH.VACCINE_TYPE
+        FROM PATIENTS
+        JOIN VACCINE_PATIENT ON VACCINE_PATIENT.PATIENT = PATIENTS.SSN
+        JOIN VACCINATION_EVENT ON VACCINATION_EVENT.HOSPITAL = VACCINE_PATIENT.HOSPITAL
+        JOIN BATCH ON BATCH.ID = VACCINATION_EVENT.BATCH
+        ORDER BY BATCH.VACCINE_TYPE
+        """
+        result = pd.read_sql_query(query_7, engine)
+        df_counts = result.groupby(['vaccine_type', 'symptom']).size().reset_index(name='count')
+        vaccine_group = df_counts.groupby(['vaccine_type'])['count'].sum().reset_index(name='total_count')
+        df_frequency = pd.merge(df_counts, vaccine_group, left_on='vaccine_type', right_on='vaccine_type', how='left')
+        df_frequency['frequency'] = df_frequency.apply(lambda row: row['count'] / row['total_count'], axis=1)
+        df_frequency['frequency_text'] = df_frequency.apply(lambda row: 'very common' if row['frequency'] >= 0.1
+                                                        else ('common' if row['frequency'] >= 0.05 else 'rare'), axis=1)
+        pivot_symptoms = df_frequency.pivot_table(values='frequency_text', index=['symptom'],
+                                                  columns='vaccine_type', aggfunc='first').reset_index()
+        df_symptom_freq = pd.merge(dfSymptoms, pivot_symptoms, left_on='name', right_on='symptom', how='left')
+        df_symptom_freq = df_symptom_freq.drop('symptom', axis=1)
+        df_symptom_freq = df_symptom_freq.fillna('-')
+        print(df_symptom_freq)
+
     except (Exception, Error) as error:
         print("Error while connecting to PostgreSQL", error)
     finally:
@@ -255,4 +276,6 @@ def main():
             psql_conn.close()
             connection.close()
             print("PostgreSQL connection is closed")
+
+
 main()
