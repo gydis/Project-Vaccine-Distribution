@@ -217,6 +217,56 @@ def main():
         dfDiagnosis = dfDiagnosis.rename(str.lower, axis='columns')
         dfDiagnosis.to_sql('diagnosis', con=psql_conn, if_exists='append', index=False)
 
+        # Part 3 requirement 1
+        dfReq1 = dfPatient
+        dfReq1 = dfReq1[['ssn', 'gender', 'birthday']]
+        dfReq1 = dfReq1.merge(dfDiagnosis, left_on='ssn', right_on='patient')
+        dfReq1.drop('patient', axis=1, inplace=True)
+        dfReq1 = dfReq1.rename(columns={
+            'birthday' : 'date_of_birth',
+            'date' : 'diagnosis_date'})
+        dfReq1.to_sql('patient_symptoms', con=psql_conn, index=True, if_exists='replace')
+
+        # Part 3 requirement 2
+        dfReq2 = dfPatient
+        dfReq2 = dfReq2[['ssn']]
+        dfReq2 = dfReq2.merge(vacc_patient_df, left_on='ssn', right_on='patient').drop('patient', axis=1)
+        dfReq2 = dfReq2.merge(vaccine_df, on=['date', 'hospital'])
+        dfReq2 = dfReq2.merge(dfBatch[['id', 'vaccine_type']], left_on='batch', right_on='id').drop(['hospital', 'batch', 'id'], axis=1)
+
+        dates = pd.DataFrame()
+        types = pd.DataFrame()
+        grouped = dfReq2.groupby('ssn')
+        for i in grouped:
+            item = i[1].reset_index(0).drop('index', axis=1).reset_index(0)
+            item = item.pivot(index='ssn', columns='index')
+            date = item['date'].reset_index(0)
+            vacctype = item['vaccine_type'].reset_index(0)
+            if 1 not in date:
+                date[1] = np.nan
+            if 1 not in vacctype:
+                vacctype[1] = np.nan
+            dates = pd.concat([dates, date])
+            types = pd.concat([types, vacctype])
+
+        res = dates.merge(types, on='ssn')
+        res.loc[res['0_x'] > res['1_x'], ['0_x', '1_x', '0_y', '1_y']] = res.loc[res['0_x'] > res['1_x'], ['1_x', '0_x', '1_y', '0_y']].values
+        res = res.rename(columns={
+            '0_x' : 'date1',
+            '1_x' : 'date2',
+            '0_y' : 'vaccine_type1',
+            '1_y' : 'vaccine_type2'
+            })
+        missing = dfPatient[~dfPatient['ssn'].isin(res['ssn'])]
+        missing = missing[['ssn']]
+        missing['date1'] = np.nan
+        missing['date2'] = np.nan
+        missing['vaccine_type1'] = np.nan
+        missing['vaccine_type2'] = np.nan
+        res = pd.concat([res,missing])
+
+        res.to_sql('patient_vaccine_info', con=psql_conn, index=True, if_exists='replace')
+
         # Part 3 requirement 4
         ageValues = ['0-9', '10-19', '20-39', '40-59', '60+']
 
