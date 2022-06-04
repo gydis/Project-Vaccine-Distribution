@@ -267,6 +267,16 @@ def main():
 
         res.to_sql('patient_vaccine_info', con=psql_conn, index=True, if_exists='replace')
 
+        # Part 3 requirement 3
+
+        dfPatientSymptoms = pd.read_sql("select * from \"patient_symptoms\"", psql_conn)
+
+        dfSymptomsMales = dfPatientSymptoms[dfPatientSymptoms.gender == 'M']
+        dfSymptomsFemales = dfPatientSymptoms[dfPatientSymptoms.gender == 'F']
+
+        topMales = dfSymptomsMales['symptom'].value_counts().index.tolist()[:3]
+        topFemales = dfSymptomsFemales['symptom'].value_counts().index.tolist()[:3]
+
         # Part 3 requirement 4
         ageValues = ['0-9', '10-19', '20-39', '40-59', '60+']
 
@@ -274,7 +284,6 @@ def main():
         dfPAge = dfPatient
         dfPAge['birthday'] = pd.to_datetime(dfPAge['birthday'], format='%y%m%d')
         dfPAge['age'] = (now - dfPAge['birthday']).astype('<m8[Y]')
-        print(dfPAge)
 
         ageConditions = [
             (dfPAge['age'] < 10),
