@@ -362,6 +362,52 @@ def main():
 
         #print(df_symptom_freq)
 
+        # Part 3, Requirement 10
+        query_10 = """
+            -- Vaccination events where worker in question participated
+            WITH ve AS (
+                SELECT ve.hospital, ve.date, vs.weekday
+                FROM vaccination_shift AS vs
+                RIGHT JOIN vaccination_event AS ve
+                ON ve.hospital = vs.hospital AND EXTRACT(isodow FROM ve.date) = (
+                    -- Make sure to only include event if weekday matches with
+                    -- working shift for the worker in question.
+                    CASE vs.weekday
+                        WHEN 'Monday' THEN 1
+                        WHEN 'Tuesday' THEN 2
+                        WHEN 'Wednesday' THEN 3
+                        WHEN 'Thursday' THEN 4
+                        WHEN 'Friday' THEN 5
+                        WHEN 'Saturday' THEN 6
+                        WHEN 'Sunday' THEN 7
+                    END
+                ) AND ve.date >= '2021-05-05' AND ve.date <= '2021-05-15'
+                WHERE vs.worker = '19740919-7140'
+            )
+
+            -- Patients
+            SELECT patient.ssn, patient.name
+            FROM ve
+            LEFT JOIN vaccine_patient AS vp
+            ON vp.hospital = ve.hospital AND vp.date = ve.date
+            LEFT JOIN patient
+            ON patient.ssn = vp.patient
+
+            UNION
+
+            -- Staff members
+            SELECT staff.ssn, staff.name
+            FROM ve
+            LEFT JOIN vaccination_shift AS vs
+            ON vs.hospital = ve.hospital AND vs.weekday = ve.weekday AND vs.worker != '19740919-7140'
+            LEFT JOIN staff
+            ON staff.ssn = vs.worker
+            GROUP BY staff.ssn, staff.name
+            ;
+        """
+        query_10_result = pd.read_sql_query(query_10, engine)
+        # print(query_10_result)
+
     except (Exception, Error) as error:
         print("Error while connecting to PostgreSQL", error)
     finally:
