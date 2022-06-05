@@ -29,6 +29,7 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 import datetime
+import openpyxl
 
 
 # NOTE TO GRADER: IF YOU WANT TO RUN THIS FILE, DON'T FORGET TO INSTALL requirements.txt.
@@ -201,6 +202,9 @@ def main():
             'patientSsNo': 'patient',
             'location': 'hospital'})
         vacc_patient_df = vacc_patient_df.rename(str.lower, axis='columns')
+        
+        
+        
         vacc_patient_df.to_sql('vaccine_patient', con=psql_conn, if_exists='append', index=False)
 
         # Populating Symptoms -> symptoms
@@ -217,7 +221,7 @@ def main():
         dfDiagnosis = dfDiagnosis.rename(str.lower, axis='columns')
         dfDiagnosis.to_sql('diagnosis', con=psql_conn, if_exists='append', index=False)
 
-        # Part 3 requirement 1
+        #Part 3 requirement 1
         dfReq1 = dfPatient
         dfReq1 = dfReq1[['ssn', 'gender', 'birthday']]
         dfReq1 = dfReq1.merge(dfDiagnosis, left_on='ssn', right_on='patient')
@@ -227,7 +231,7 @@ def main():
             'date' : 'diagnosis_date'})
         dfReq1.to_sql('patient_symptoms', con=psql_conn, index=True, if_exists='replace')
 
-        # Part 3 requirement 2
+        #Part 3 requirement 2
         dfReq2 = dfPatient
         dfReq2 = dfReq2[['ssn']]
         dfReq2 = dfReq2.merge(vacc_patient_df, left_on='ssn', right_on='patient').drop('patient', axis=1)
@@ -267,8 +271,7 @@ def main():
 
         res.to_sql('patient_vaccine_info', con=psql_conn, index=True, if_exists='replace')
 
-        # Part 3 requirement 3
-
+        #Part 3 requirement 3
         dfPatientSymptoms = pd.read_sql("select * from \"patient_symptoms\"", psql_conn)
 
         dfSymptomsMales = dfPatientSymptoms[dfPatientSymptoms.gender == 'M']
@@ -277,7 +280,7 @@ def main():
         topMales = dfSymptomsMales['symptom'].value_counts().index.tolist()[:3]
         topFemales = dfSymptomsFemales['symptom'].value_counts().index.tolist()[:3]
 
-        # Part 3 requirement 4
+        #Part 3 requirement 4
         ageValues = ['0-9', '10-19', '20-39', '40-59', '60+']
 
         now = pd.Timestamp('now')
@@ -292,12 +295,47 @@ def main():
             (dfPAge['age'] >= 39) & (dfPAge['age'] < 59),
             (dfPAge['age'] >= 60)
         ]
-        dfPAge['ageGroup'] = np.select(ageConditions, ageValues)
+        dfPAge['age_group'] = np.select(ageConditions, ageValues)
 
-        # removing age column, as it's not rquired by the task
+        # removing age column, as it's not required by the task
         dfPAge.drop('age', axis=1, inplace=True)
 
-        # Part 3 requirement 7
+        #Part 3 requirement 5
+        dfR5vacc_patient = pd.read_sql("select * from \"vaccine_patient\"", psql_conn)
+        dfR5patient = dfPAge
+        dfR5vacc_patient = dfR5vacc_patient.groupby(['patient'])['date'].count()
+        dfR5vacc_patient = dfR5vacc_patient.reset_index()
+        dfR5vacc_patient.columns = ['ssn', 'vacc_status']
+        dfR5patient = dfR5patient.merge(dfR5vacc_patient, how='left', on='ssn')
+        dfR5patient['vacc_status'] = dfR5patient['vacc_status'].fillna(0)
+        #dfR5patient.to_sql('patient', con=psql_conn, if_exists='append', index=False)
+        #print(dfR5patient)
+
+        #Part 3 requirement 6
+        dfR6patient = dfR5patient.groupby(['age_group'])['ssn'].count()
+        dfR6patient = dfR6patient.reset_index()
+        dfR6patient.columns = ['age_group', 'total_number']
+        dfR6patientVacc_0 = dfR5patient[dfR5patient['vacc_status'] == 0].groupby(['age_group'])['ssn'].count()
+        dfR6patientVacc_0 = dfR6patientVacc_0.reset_index()
+        dfR6patientVacc_0.columns = ['age_group', 'vacc0']
+        dfR6patientVacc_1 = dfR5patient[dfR5patient['vacc_status'] == 1].groupby(['age_group'])['ssn'].count()
+        dfR6patientVacc_1 = dfR6patientVacc_1.reset_index()
+        dfR6patientVacc_1.columns = ['age_group', 'vacc1']
+        dfR6patientVacc_2 = dfR5patient[dfR5patient['vacc_status'] == 2].groupby(['age_group'])['ssn'].count()
+        dfR6patientVacc_2 = dfR6patientVacc_2.reset_index()
+        dfR6patientVacc_2.columns = ['age_group', 'vacc2']
+        dfR6patient = dfR6patient.merge(dfR6patientVacc_0, how='left', on='age_group')
+        dfR6patient = dfR6patient.merge(dfR6patientVacc_1, how='left', on='age_group')
+        dfR6patient = dfR6patient.merge(dfR6patientVacc_2, how='left', on='age_group')
+        dfR6patient.iloc[:, 2:5] = dfR6patient.iloc[:, 2:5].divide(dfR6patient.iloc[:,1], axis = 'rows')
+        dfR6patient = dfR6patient.drop('total_number', 1)
+        dfR6patient.rename(columns={'age_group': 'vacc_status'}, inplace=True)
+        dfR6patient = dfR6patient.set_index('vacc_status')
+        dfR6patient = dfR6patient.T
+        #print(dfR6patient)
+
+
+        #Part 3 requirement 7
         query_7 = """
         WITH PATIENTS AS
 	        (SELECT SSN, PATIENT.NAME, DIAGNOSIS.SYMPTOM
@@ -321,7 +359,8 @@ def main():
         df_symptom_freq = pd.merge(dfSymptoms, pivot_symptoms, left_on='name', right_on='symptom', how='left')
         df_symptom_freq = df_symptom_freq.drop('symptom', axis=1)
         df_symptom_freq = df_symptom_freq.fillna('-')
-        print(df_symptom_freq)
+
+        #print(df_symptom_freq)
 
     except (Exception, Error) as error:
         print("Error while connecting to PostgreSQL", error)
