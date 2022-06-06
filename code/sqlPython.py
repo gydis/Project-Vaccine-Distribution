@@ -202,9 +202,7 @@ def main():
             'patientSsNo': 'patient',
             'location': 'hospital'})
         vacc_patient_df = vacc_patient_df.rename(str.lower, axis='columns')
-        
-        
-        
+
         vacc_patient_df.to_sql('vaccine_patient', con=psql_conn, if_exists='append', index=False)
 
         # Populating Symptoms -> symptoms
@@ -221,22 +219,23 @@ def main():
         dfDiagnosis = dfDiagnosis.rename(str.lower, axis='columns')
         dfDiagnosis.to_sql('diagnosis', con=psql_conn, if_exists='append', index=False)
 
-        #Part 3 requirement 1
+        # Part 3 requirement 1
         dfReq1 = dfPatient
         dfReq1 = dfReq1[['ssn', 'gender', 'birthday']]
         dfReq1 = dfReq1.merge(dfDiagnosis, left_on='ssn', right_on='patient')
         dfReq1.drop('patient', axis=1, inplace=True)
         dfReq1 = dfReq1.rename(columns={
-            'birthday' : 'date_of_birth',
-            'date' : 'diagnosis_date'})
+            'birthday': 'date_of_birth',
+            'date': 'diagnosis_date'})
         dfReq1.to_sql('patient_symptoms', con=psql_conn, index=True, if_exists='replace')
 
-        #Part 3 requirement 2
+        # Part 3 requirement 2
         dfReq2 = dfPatient
         dfReq2 = dfReq2[['ssn']]
         dfReq2 = dfReq2.merge(vacc_patient_df, left_on='ssn', right_on='patient').drop('patient', axis=1)
         dfReq2 = dfReq2.merge(vaccine_df, on=['date', 'hospital'])
-        dfReq2 = dfReq2.merge(dfBatch[['id', 'vaccine_type']], left_on='batch', right_on='id').drop(['hospital', 'batch', 'id'], axis=1)
+        dfReq2 = dfReq2.merge(dfBatch[['id', 'vaccine_type']], left_on='batch', right_on='id').drop(
+            ['hospital', 'batch', 'id'], axis=1)
 
         dates = pd.DataFrame()
         types = pd.DataFrame()
@@ -254,24 +253,25 @@ def main():
             types = pd.concat([types, vacctype])
 
         res = dates.merge(types, on='ssn')
-        res.loc[res['0_x'] > res['1_x'], ['0_x', '1_x', '0_y', '1_y']] = res.loc[res['0_x'] > res['1_x'], ['1_x', '0_x', '1_y', '0_y']].values
+        res.loc[res['0_x'] > res['1_x'], ['0_x', '1_x', '0_y', '1_y']] = res.loc[
+            res['0_x'] > res['1_x'], ['1_x', '0_x', '1_y', '0_y']].values
         res = res.rename(columns={
-            '0_x' : 'date1',
-            '1_x' : 'date2',
-            '0_y' : 'vaccine_type1',
-            '1_y' : 'vaccine_type2'
-            })
+            '0_x': 'date1',
+            '1_x': 'date2',
+            '0_y': 'vaccine_type1',
+            '1_y': 'vaccine_type2'
+        })
         missing = dfPatient[~dfPatient['ssn'].isin(res['ssn'])]
         missing = missing[['ssn']]
         missing['date1'] = np.nan
         missing['date2'] = np.nan
         missing['vaccine_type1'] = np.nan
         missing['vaccine_type2'] = np.nan
-        res = pd.concat([res,missing])
+        res = pd.concat([res, missing])
 
         res.to_sql('patient_vaccine_info', con=psql_conn, index=True, if_exists='replace')
 
-        #Part 3 requirement 3
+        # Part 3 requirement 3
         dfPatientSymptoms = pd.read_sql("select * from \"patient_symptoms\"", psql_conn)
 
         dfSymptomsMales = dfPatientSymptoms[dfPatientSymptoms.gender == 'M']
@@ -280,7 +280,7 @@ def main():
         topMales = dfSymptomsMales['symptom'].value_counts().index.tolist()[:3]
         topFemales = dfSymptomsFemales['symptom'].value_counts().index.tolist()[:3]
 
-        #Part 3 requirement 4
+        # Part 3 requirement 4
         ageValues = ['0-9', '10-19', '20-39', '40-59', '60+']
 
         now = pd.Timestamp('now')
@@ -300,7 +300,7 @@ def main():
         # removing age column, as it's not required by the task
         dfPAge.drop('age', axis=1, inplace=True)
 
-        #Part 3 requirement 5
+        # Part 3 requirement 5
         dfR5vacc_patient = pd.read_sql("select * from \"vaccine_patient\"", psql_conn)
         dfR5patient = dfPAge
         dfR5vacc_patient = dfR5vacc_patient.groupby(['patient'])['date'].count()
@@ -308,10 +308,10 @@ def main():
         dfR5vacc_patient.columns = ['ssn', 'vacc_status']
         dfR5patient = dfR5patient.merge(dfR5vacc_patient, how='left', on='ssn')
         dfR5patient['vacc_status'] = dfR5patient['vacc_status'].fillna(0)
-        #dfR5patient.to_sql('patient', con=psql_conn, if_exists='append', index=False)
-        #print(dfR5patient)
+        # dfR5patient.to_sql('patient', con=psql_conn, if_exists='append', index=False)
+        # print(dfR5patient)
 
-        #Part 3 requirement 6
+        # Part 3 requirement 6
         dfR6patient = dfR5patient.groupby(['age_group'])['ssn'].count()
         dfR6patient = dfR6patient.reset_index()
         dfR6patient.columns = ['age_group', 'total_number']
@@ -327,25 +327,40 @@ def main():
         dfR6patient = dfR6patient.merge(dfR6patientVacc_0, how='left', on='age_group')
         dfR6patient = dfR6patient.merge(dfR6patientVacc_1, how='left', on='age_group')
         dfR6patient = dfR6patient.merge(dfR6patientVacc_2, how='left', on='age_group')
-        dfR6patient.iloc[:, 2:5] = dfR6patient.iloc[:, 2:5].divide(dfR6patient.iloc[:,1], axis = 'rows')
+        dfR6patient.iloc[:, 2:5] = dfR6patient.iloc[:, 2:5].divide(dfR6patient.iloc[:, 1], axis='rows')
         dfR6patient = dfR6patient.drop('total_number', axis=1)
         dfR6patient.rename(columns={'age_group': 'vacc_status'}, inplace=True)
         dfR6patient = dfR6patient.set_index('vacc_status')
         dfR6patient = dfR6patient.T
-        #print(dfR6patient)
+        # print(dfR6patient)
 
-
-        #Part 3 requirement 7
+        # Part 3 requirement 7
         query_7 = """
-        WITH PATIENTS AS
-	        (SELECT SSN, PATIENT.NAME, DIAGNOSIS.SYMPTOM
-		    FROM PATIENT
-		    JOIN DIAGNOSIS ON PATIENT.SSN = DIAGNOSIS.PATIENT)
-        SELECT PATIENTS.NAME, PATIENTS.SYMPTOM, BATCH.VACCINE_TYPE
-        FROM PATIENTS
-        JOIN VACCINE_PATIENT ON VACCINE_PATIENT.PATIENT = PATIENTS.SSN
-        JOIN VACCINATION_EVENT ON VACCINATION_EVENT.HOSPITAL = VACCINE_PATIENT.HOSPITAL AND VACCINATION_EVENT.DATE = VACCINE_PATIENT.DATE
+        WITH MAPPING AS
+	        (SELECT VACCINE_PATIENT.PATIENT,
+			    VACCINATION_EVENT.DATE AS VACC_DATE,
+			    VACCINATION_EVENT.HOSPITAL,
+			    DIAGNOSIS.SYMPTOM,
+			    DIAGNOSIS.DATE AS SYMPTOM_DATE
+		    FROM VACCINATION_EVENT
+		    JOIN VACCINE_PATIENT ON VACCINE_PATIENT.DATE = VACCINATION_EVENT.DATE
+		    AND VACCINE_PATIENT.HOSPITAL = VACCINATION_EVENT.HOSPITAL
+		    JOIN DIAGNOSIS ON VACCINE_PATIENT.PATIENT = DIAGNOSIS.PATIENT AND VACCINATION_EVENT.DATE < DIAGNOSIS.DATE),
+	    DEDUPLICATED AS
+	        (SELECT PATIENT, HOSPITAL, SYMPTOM, SYMPTOM_DATE, MAX(VACC_DATE) AS VACC_DATE
+		FROM MAPPING
+		GROUP BY PATIENT, HOSPITAL, SYMPTOM, SYMPTOM_DATE)
+        SELECT DEDUPLICATED.PATIENT,
+	        DEDUPLICATED.HOSPITAL,
+	        DEDUPLICATED.SYMPTOM,
+	        DEDUPLICATED.SYMPTOM_DATE,
+	        DEDUPLICATED.VACC_DATE,
+	        BATCH.VACCINE_TYPE
+        FROM DEDUPLICATED
+        JOIN VACCINATION_EVENT ON VACCINATION_EVENT.DATE = DEDUPLICATED.VACC_DATE
+        AND VACCINATION_EVENT.HOSPITAL = DEDUPLICATED.HOSPITAL
         JOIN BATCH ON BATCH.ID = VACCINATION_EVENT.BATCH
+        ORDER BY DEDUPLICATED.PATIENT
         """
         result = pd.read_sql_query(query_7, engine)
         df_counts = result.groupby(['vaccine_type', 'symptom']).size().reset_index(name='count')
@@ -353,7 +368,7 @@ def main():
         df_frequency = pd.merge(df_counts, vaccine_group, left_on='vaccine_type', right_on='vaccine_type', how='left')
         df_frequency['frequency'] = df_frequency.apply(lambda row: row['count'] / row['total_count'], axis=1)
         df_frequency['frequency_text'] = df_frequency.apply(lambda row: 'very common' if row['frequency'] >= 0.1
-                                                        else ('common' if row['frequency'] >= 0.05 else 'rare'), axis=1)
+        else ('common' if row['frequency'] >= 0.05 else 'rare'), axis=1)
         pivot_symptoms = df_frequency.pivot_table(values='frequency_text', index=['symptom'],
                                                   columns='vaccine_type', aggfunc='first').reset_index()
         df_symptom_freq = pd.merge(dfSymptoms, pivot_symptoms, left_on='name', right_on='symptom', how='left')
@@ -373,7 +388,8 @@ def main():
                 ORDER BY VACCINE_PATIENT.DATE
                         """
         df8_vacc_patient = pd.read_sql_query(query_8, engine)
-        df8_vacc_patient["participation"] = round((df8_vacc_patient["num_patient"] / df8_vacc_patient["num_of_vacc"]) * 100, 2)
+        df8_vacc_patient["participation"] = round(
+            (df8_vacc_patient["num_patient"] / df8_vacc_patient["num_of_vacc"]) * 100, 2)
         atnd_patient = round(df8_vacc_patient['participation'].mean(), 2)
         std = round(df8_vacc_patient["participation"].std(), 2)
         vacc_perc = atnd_patient + std
