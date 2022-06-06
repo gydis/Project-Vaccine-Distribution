@@ -188,7 +188,6 @@ def main():
         dfPAge = dfPatient
         dfPAge.loc[:, 'birthday'] = pd.to_datetime(dfPatient.birthday)
         #dfPAge['birthday'] = pd.to_datetime(dfPAge['birthday'], format='%y%m%d')
-        print("test")
 
         dfPAge['age'] = (now - dfPAge['birthday']).astype('<m8[Y]')
 
