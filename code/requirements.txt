@@ -4,3 +4,4 @@ SQLAlchemy
 #psycopg2 
 psycopg2-binary #(Work for linux) 
 openpyxl
+matplotlib

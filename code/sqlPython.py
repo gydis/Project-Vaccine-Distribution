@@ -362,10 +362,54 @@ def main():
 
         #print(df_symptom_freq)
 
+        # Part 3, Requirement 9
+        query_9_vaccinated = """
+            WITH patients AS (
+                SELECT vp.patient, MIN(vp.date) AS date
+                FROM vaccine_patient as vp
+                GROUP BY vp.patient
+            )
+
+            SELECT patients.date, COUNT(patients.patient) AS n
+            FROM patients
+            GROUP BY patients.date
+            ORDER BY patients.date
+            ;
+        """
+        dfR9_vaccinated = pd.read_sql_query(query_9_vaccinated, engine)
+        dfR9_vaccinated['date'] = pd.to_datetime(dfR9_vaccinated['date'], format='%Y-%m-%d')
+        dfR9_vaccinated['n'] = dfR9_vaccinated['n'].cumsum()
+        dfR9_vaccinated.set_index(['date'], inplace=True)
+        dfR9_vaccinated = dfR9_vaccinated.rename(columns={'n': 'vaccinated'})
+        q9_plot = dfR9_vaccinated.plot()
+
+        query_9_full = """
+            WITH counts AS (
+                SELECT vp.patient, COUNT(vp.patient) AS shots, MAX(vp.date) AS last_date
+                FROM vaccine_patient AS vp
+                GROUP BY vp.patient
+            )
+
+            SELECT counts.last_date AS date, COUNT(counts.patient) as n
+            FROM counts
+            WHERE counts.shots > 1
+            GROUP BY counts.last_date
+            ORDER BY counts.last_date ASC
+            ;
+        """
+        dfR9_full = pd.read_sql_query(query_9_full, engine)
+        dfR9_full['date'] = pd.to_datetime(dfR9_full['date'], format='%Y-%m-%d')
+        dfR9_full['n'] = dfR9_full['n'].cumsum()
+        dfR9_full.set_index(['date'], inplace=True)
+        dfR9_full = dfR9_full.rename(columns={'n': 'two_vaccines'})
+
+        dfR9_full.plot(ax=q9_plot).get_figure().savefig(DATADIR + '/img/part3_req9.png')
+        # print(dfR9_vaccinated)
+
         # Part 3, Requirement 10
         query_10 = """
-            -- Vaccination events where worker in question participated
             WITH ve AS (
+                -- Vaccination events where worker in question participated
                 SELECT ve.hospital, ve.date, vs.weekday
                 FROM vaccination_shift AS vs
                 RIGHT JOIN vaccination_event AS ve
