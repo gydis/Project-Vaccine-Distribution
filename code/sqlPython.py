@@ -344,7 +344,7 @@ def main():
         SELECT PATIENTS.NAME, PATIENTS.SYMPTOM, BATCH.VACCINE_TYPE
         FROM PATIENTS
         JOIN VACCINE_PATIENT ON VACCINE_PATIENT.PATIENT = PATIENTS.SSN
-        JOIN VACCINATION_EVENT ON VACCINATION_EVENT.HOSPITAL = VACCINE_PATIENT.HOSPITAL
+        JOIN VACCINATION_EVENT ON VACCINATION_EVENT.HOSPITAL = VACCINE_PATIENT.HOSPITAL AND VACCINATION_EVENT.DATE = VACCINE_PATIENT.DATE
         JOIN BATCH ON BATCH.ID = VACCINATION_EVENT.BATCH
         """
         result = pd.read_sql_query(query_7, engine)
@@ -360,7 +360,24 @@ def main():
         df_symptom_freq = df_symptom_freq.drop('symptom', axis=1)
         df_symptom_freq = df_symptom_freq.fillna('-')
 
-        #print(df_symptom_freq)
+        print(df_symptom_freq)
+
+        query_8 = """
+                SELECT VACCINE_PATIENT.DATE, VACCINATION_EVENT.HOSPITAL, BATCH.ID, BATCH.NUM_OF_VACC, 
+                COUNT(VACCINE_PATIENT.PATIENT) AS NUM_PATIENT
+                FROM VACCINE_PATIENT
+                JOIN VACCINATION_EVENT ON VACCINE_PATIENT.DATE = VACCINATION_EVENT.DATE
+                AND VACCINE_PATIENT.HOSPITAL = VACCINATION_EVENT.HOSPITAL
+                JOIN BATCH ON BATCH.ID = VACCINATION_EVENT.BATCH
+                GROUP BY VACCINE_PATIENT.DATE, VACCINATION_EVENT.HOSPITAL, BATCH.ID, BATCH.NUM_OF_VACC
+                ORDER BY VACCINE_PATIENT.DATE
+                        """
+        df8_vacc_patient = pd.read_sql_query(query_8, engine)
+        df8_vacc_patient["participation"] = round((df8_vacc_patient["num_patient"] / df8_vacc_patient["num_of_vacc"]) * 100, 2)
+        atnd_patient = round(df8_vacc_patient['participation'].mean(), 2)
+        std = round(df8_vacc_patient["participation"].std(), 2)
+        vacc_perc = atnd_patient + std
+        print(f"Amount of vaccines that should be reserved for each vaccination to minimize waste is {vacc_perc}%")
 
         # Part 3, Requirement 9
         query_9_vaccinated = """
