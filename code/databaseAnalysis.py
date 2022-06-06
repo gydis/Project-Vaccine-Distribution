@@ -350,10 +350,10 @@ def main():
         dfR9_full.set_index(['date'], inplace=True)
         dfR9_full = dfR9_full.rename(columns={'n': 'two_vaccines'})
 
-        dfR9_full.plot(ax=q9_plot).get_figure().savefig(DATADIR + '/img/part3_req9.png')
+        dfR9_full.plot(ax=q9_plot)#.get_figure().savefig(DATADIR + '/img/part3_req9.png')
 
         #Uncomment this to see plot, however, doing so will prevent you seeing results of requirement 10
-        #plt.show()
+        plt.show()
 
         #Part 3, Requirement 10
         query_10 = """
