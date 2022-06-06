@@ -328,7 +328,7 @@ def main():
         dfR6patient = dfR6patient.merge(dfR6patientVacc_1, how='left', on='age_group')
         dfR6patient = dfR6patient.merge(dfR6patientVacc_2, how='left', on='age_group')
         dfR6patient.iloc[:, 2:5] = dfR6patient.iloc[:, 2:5].divide(dfR6patient.iloc[:,1], axis = 'rows')
-        dfR6patient = dfR6patient.drop('total_number', 1)
+        dfR6patient = dfR6patient.drop('total_number', axis=1)
         dfR6patient.rename(columns={'age_group': 'vacc_status'}, inplace=True)
         dfR6patient = dfR6patient.set_index('vacc_status')
         dfR6patient = dfR6patient.T
